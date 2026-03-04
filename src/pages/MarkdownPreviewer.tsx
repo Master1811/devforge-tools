@@ -1,0 +1,72 @@
+import { useState } from "react";
+import ToolLayout from "@/components/shared/ToolLayout";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useDebounce } from "@/hooks/useDebounce";
+import { parseMarkdown, wordCount, readTime, SAMPLE_MARKDOWN } from "@/lib/tools/markdown";
+import { Copy, Check } from "lucide-react";
+
+export default function MarkdownPreviewerPage() {
+  const [input, setInput] = useLocalStorage("devforge-md-input", "");
+  const debounced = useDebounce(input, 150);
+  const [copied, setCopied] = useState(false);
+  const html = debounced ? parseMarkdown(debounced) : "";
+
+  const copyHtml = () => {
+    navigator.clipboard.writeText(html);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <ToolLayout
+      title="Markdown Previewer & Editor Online"
+      slug="markdown-previewer"
+      description="Live markdown editor with instant preview. Convert markdown to HTML, see formatted output in real-time — free, no signup."
+      keywords={["markdown previewer online", "markdown to html", "live markdown editor online"]}
+      howToUse={["Type or paste Markdown into the left editor panel.", "See the rendered preview update in real-time on the right.", "Copy the generated HTML or use the sample to explore syntax."]}
+      whatIs={{ title: "What is Markdown?", content: "Markdown is a lightweight markup language created by John Gruber that lets you write formatted text using plain text syntax. Headings are marked with # symbols, bold with **, italic with *, and code with backticks. Markdown is used everywhere — GitHub READMEs, documentation sites, blogs, Notion, Slack, and countless other platforms. Our markdown previewer online provides a live, side-by-side editing experience: write Markdown on the left and see the rendered HTML on the right, updating in real-time. It supports GitHub Flavored Markdown including tables, code blocks with language hints, blockquotes, and nested lists. All rendering happens locally in your browser." }}
+      faqs={[
+        { q: "What Markdown syntax is supported?", a: "The previewer supports headings (# to ######), bold, italic, links, images, code blocks, inline code, blockquotes, ordered and unordered lists, horizontal rules, and tables." },
+        { q: "Can I copy the generated HTML?", a: "Yes. Click the 'Copy as HTML' button above the preview panel to copy the raw HTML to your clipboard." },
+        { q: "Is this GitHub Flavored Markdown?", a: "It supports most GFM features including tables and fenced code blocks. Some advanced features like task lists and footnotes may not be fully supported." },
+        { q: "Can I use this for README files?", a: "Absolutely. Write your README.md content here to preview how it will look on GitHub, then copy the Markdown to your project." },
+        { q: "Is my content saved?", a: "Your input is stored in your browser's local storage, so it persists between visits. No data is sent to any server." },
+      ]}
+      relatedTools={[
+        { name: "RegEx Tester", path: "/regex-tester", description: "Test patterns for parsing Markdown syntax." },
+        { name: "YAML ↔ JSON", path: "/yaml-json-converter", description: "Convert frontmatter between YAML and JSON." },
+        { name: "Base64 Encoder", path: "/base64-encoder", description: "Encode images for embedding in Markdown." },
+      ]}
+    >
+      <div className="flex flex-wrap gap-3 mb-4 items-center">
+        <button onClick={() => setInput(SAMPLE_MARKDOWN)} className="px-3 py-1.5 rounded-md text-xs font-mono bg-surface2 border border-border hover:border-primary/40 transition-colors text-muted-foreground hover:text-foreground">
+          Load Sample
+        </button>
+        <button onClick={copyHtml} className="px-3 py-1.5 rounded-md text-xs font-mono bg-surface2 border border-border hover:border-primary/40 transition-colors text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+          {copied ? <><Check className="w-3 h-3 text-accent" /> Copied</> : <><Copy className="w-3 h-3" /> Copy as HTML</>}
+        </button>
+        {debounced && (
+          <span className="text-xs font-mono text-muted-foreground">
+            {wordCount(debounced)} words • {readTime(debounced)} min read
+          </span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" style={{ minHeight: "400px" }}>
+        <textarea
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="Write Markdown here..."
+          className="w-full bg-surface border border-border rounded-lg p-4 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-y"
+          style={{ minHeight: "400px" }}
+          spellCheck={false}
+        />
+        <div
+          className="bg-surface border border-border rounded-lg p-6 overflow-auto prose prose-invert prose-sm max-w-none"
+          style={{ minHeight: "400px" }}
+          dangerouslySetInnerHTML={{ __html: html || '<p class="text-muted-foreground">Preview will appear here...</p>' }}
+        />
+      </div>
+    </ToolLayout>
+  );
+}
