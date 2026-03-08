@@ -59,13 +59,47 @@ export default function Index() {
           </motion.div>
 
           <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08, duration: 0.6, ease }}
-            className="heading-display text-4xl sm:text-6xl lg:text-7xl mb-5"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.08, duration: 0.01 }}
+            className="heading-display text-4xl sm:text-6xl lg:text-7xl mb-5 overflow-hidden"
           >
-            Every tool a developer needs.{" "}
-            <span className="text-primary">Free. Forever.</span>
+            {"Every tool a developer needs.".split(" ").map((word, i) => (
+              <motion.span
+                key={i}
+                initial={{ y: "110%", opacity: 0, rotateX: 40 }}
+                animate={{ y: "0%", opacity: 1, rotateX: 0 }}
+                transition={{
+                  delay: 0.15 + i * 0.07,
+                  duration: 0.8,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+                className="inline-block mr-[0.28em]"
+                style={{ perspective: 400 }}
+              >
+                {word}
+              </motion.span>
+            ))}
+            <br className="hidden sm:block" />
+            {"Free. Forever.".split(" ").map((word, i) => (
+              <motion.span
+                key={`accent-${i}`}
+                initial={{ y: "110%", opacity: 0, rotateX: 40 }}
+                animate={{ y: "0%", opacity: 1, rotateX: 0 }}
+                transition={{
+                  delay: 0.15 + 5 * 0.07 + i * 0.09,
+                  duration: 0.9,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+                className="inline-block mr-[0.28em] text-primary"
+                style={{
+                  perspective: 400,
+                  textShadow: "0 0 60px hsl(var(--primary) / 0.3), 0 0 120px hsl(var(--primary) / 0.1)",
+                }}
+              >
+                {word}
+              </motion.span>
+            ))}
           </motion.h1>
 
           <motion.p
