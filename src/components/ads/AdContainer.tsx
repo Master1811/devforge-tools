@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type AdPlacement = "leaderboard" | "sidebar" | "in-flow" | "mobile-sticky";
+type AdPlacement = "leaderboard" | "sidebar" | "in-flow" | "mobile-sticky" | "success-banner";
 
 interface AdContainerProps {
   placement: AdPlacement;
   className?: string;
+  show?: boolean;
 }
 
 const config: Record<AdPlacement, {
@@ -34,9 +35,13 @@ const config: Record<AdPlacement, {
     label: "Mobile Sticky 320×50",
     hideOn: "flex lg:hidden",
   },
+  "success-banner": {
+    desktopW: "300px", desktopH: "250px",
+    label: "Success 300×250",
+  },
 };
 
-export default function AdContainer({ placement, className }: AdContainerProps) {
+export default function AdContainer({ placement, className, show = true }: AdContainerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -55,8 +60,12 @@ export default function AdContainer({ placement, className }: AdContainerProps) 
   }, [placement]);
 
   if (placement === "mobile-sticky" && dismissed) return null;
+  if (placement === "success-banner" && !show) return null;
 
-  // Shared hover glow style — ads get their own glow, independent of the grid
+  // CLS guard: skeleton shimmer while loading
+  const shimmerClass = !visible ? "animate-pulse" : "";
+
+  // Hover glow — ads get their own glow, independent of the grid
   const hoverGlowClass = "transition-shadow duration-300 hover:shadow-[0_0_20px_-4px_hsl(var(--primary)/0.4)] hover:border-primary/40";
 
   if (placement === "mobile-sticky") {
@@ -81,14 +90,40 @@ export default function AdContainer({ placement, className }: AdContainerProps) 
     );
   }
 
+  // Success banner: fade-in animation
+  if (placement === "success-banner") {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "mx-auto items-center justify-center rounded-lg border border-border bg-surface/80 backdrop-blur overflow-hidden",
+          hoverGlowClass,
+          "flex animate-in fade-in duration-500",
+          className
+        )}
+        style={{
+          minHeight: c.desktopH,
+          maxWidth: c.desktopW,
+          width: "100%",
+          aspectRatio: "300/250",
+        }}
+        data-ad-slot={`devforge-${placement}`}
+        data-ad-format="auto"
+      >
+        <DevAdPlaceholder label={c.label} />
+      </div>
+    );
+  }
+
   const visibilityClass = c.hideOn ?? "flex";
 
   return (
     <div
       ref={ref}
       className={cn(
-        "mx-auto items-center justify-center rounded-lg border border-border bg-surface/80 backdrop-blur",
+        "mx-auto items-center justify-center rounded-lg border border-border bg-surface/80 backdrop-blur overflow-hidden",
         hoverGlowClass,
+        shimmerClass,
         visibilityClass,
         className
       )}
@@ -103,7 +138,7 @@ export default function AdContainer({ placement, className }: AdContainerProps) 
       {visible ? (
         <DevAdPlaceholder label={c.label} />
       ) : (
-        <div style={{ minHeight: c.desktopH }} />
+        <AdSkeleton height={c.desktopH} />
       )}
     </div>
   );
@@ -118,6 +153,17 @@ function DevAdPlaceholder({ label }: { label: string }) {
       <span className="font-mono text-[10px] text-muted-foreground/30">
         DEV AD — {label}
       </span>
+    </div>
+  );
+}
+
+function AdSkeleton({ height }: { height: string }) {
+  return (
+    <div
+      className="w-full bg-surface2/50 rounded-lg relative overflow-hidden"
+      style={{ minHeight: height }}
+    >
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-surface/30 to-transparent" />
     </div>
   );
 }
