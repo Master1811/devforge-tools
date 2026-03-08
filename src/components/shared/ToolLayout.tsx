@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ReactNode } from "react";
 import { motion } from "framer-motion";
-import AdSlot from "./AdSlot";
+import AdContainer from "../ads/AdContainer";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 import { Shield } from "lucide-react";
@@ -63,6 +63,11 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
 
       <main className="pt-20 pb-8 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Leaderboard ad — top, above title on mobile */}
+          <div className="mb-4">
+            <AdContainer placement="leaderboard" />
+          </div>
+
           {/* Breadcrumb */}
           <nav className="text-xs font-mono text-muted-foreground mb-4">
             <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
@@ -80,12 +85,32 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
             </div>
           </motion.div>
 
-          <AdSlot size="leaderboard" position="top" />
+          {/* Tool UI + Sidebar ad — responsive layout */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-6 mb-4">
+            <div className="flex gap-6">
+              {/* Tool content: full width on mobile, calc(100% - 320px) on desktop when sidebar visible */}
+              <div className="w-full lg:w-[calc(100%-320px)] min-w-0">
+                {children}
 
-          {/* Tool UI */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-6 mb-12">
-            {children}
+                {/* In-flow rectangle ad — directly below tool content for highest CTR */}
+                <div className="mt-6">
+                  <AdContainer placement="in-flow" />
+                </div>
+              </div>
+
+              {/* Sidebar ad — desktop only, sticky */}
+              <aside className="hidden lg:block w-[300px] flex-shrink-0">
+                <div className="sticky top-24">
+                  <AdContainer placement="sidebar" className="!flex" />
+                </div>
+              </aside>
+            </div>
           </motion.div>
+
+          {/* Sidebar ad moves below tool on tablet/mobile */}
+          <div className="lg:hidden mb-8">
+            <AdContainer placement="sidebar" className="!flex mx-auto" />
+          </div>
 
           {/* SEO Content */}
           <div className="max-w-4xl space-y-10 mt-12">
@@ -126,11 +151,16 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
             </section>
           </div>
 
+          {/* Bottom banner ad */}
           <div className="mt-12">
-            <AdSlot size="banner" position="bottom" />
+            <AdContainer placement="leaderboard" className="hidden md:flex" />
           </div>
         </div>
       </main>
+
+      {/* Mobile sticky anchor ad */}
+      <AdContainer placement="mobile-sticky" />
+
       <Footer />
     </>
   );
