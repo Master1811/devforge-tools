@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const toolNames: Record<string, string> = {
   "/jwt-decoder": "JWT Decoder",
@@ -31,11 +32,14 @@ export default function Navbar() {
         <Link to="/" className="heading-display text-xl">
           Dev<span className="text-primary">Forge</span>
         </Link>
-        {currentTool && (
-          <span className="font-mono text-xs px-3 py-1 rounded-full border border-border text-muted-foreground">
-            {currentTool}
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {currentTool && (
+            <span className="font-mono text-xs px-3 py-1 rounded-full border border-border text-muted-foreground">
+              {currentTool}
+            </span>
+          )}
+          <ThemeToggle />
+        </div>
       </div>
     </nav>
   );

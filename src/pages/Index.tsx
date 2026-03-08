@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import ToolCard from "@/components/shared/ToolCard";
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
-import { KeyRound, Braces, Database, Clock, Regex, Binary, Terminal, FileJson, FileText, Lock, Zap, Globe, Shield, ArrowDown } from "lucide-react";
+import { KeyRound, Braces, Database, Clock, Regex, Binary, Terminal, FileJson, FileText, Lock, Zap, Globe, Shield } from "lucide-react";
 
 const tools = [
   { name: "JWT Decoder", description: "Decode and inspect JSON Web Tokens instantly", path: "/jwt-decoder", icon: KeyRound, tag: "auth" },
@@ -80,13 +81,10 @@ export default function Index() {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-3"
           >
-            <button
+            <InteractiveHoverButton
+              text="Explore Tools"
               onClick={scrollToTools}
-              className="px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity flex items-center gap-2"
-            >
-              Explore Tools
-              <ArrowDown className="w-4 h-4" />
-            </button>
+            />
           </motion.div>
 
           <motion.div
