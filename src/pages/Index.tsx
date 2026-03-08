@@ -81,13 +81,10 @@ export default function Index() {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-3"
           >
-            <button
+            <InteractiveHoverButton
+              text="Explore Tools"
               onClick={scrollToTools}
-              className="px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity flex items-center gap-2"
-            >
-              Explore Tools
-              <ArrowDown className="w-4 h-4" />
-            </button>
+            />
           </motion.div>
 
           <motion.div
