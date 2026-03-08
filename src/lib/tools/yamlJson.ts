@@ -1,6 +1,7 @@
 // Lightweight YAML parser/serializer (handles common cases)
 
-type YamlValue = string | number | boolean | null | YamlValue[] | Record<string, YamlValue>;
+type YamlPrimitive = string | number | boolean | null;
+type YamlValue = YamlPrimitive | YamlPrimitive[] | { [key: string]: YamlValue } | YamlValue[];
 
 export function yamlToJson(yaml: string): string {
   const lines = yaml.split("\n");

@@ -21,9 +21,9 @@ export default function JWTDecoderPage() {
     if (tab === "Payload") {
       if (!result.payload) return "";
       const display = { ...result.payload };
-      if (display.exp) display._exp_human = formatTimestamp(display.exp);
-      if (display.iat) display._iat_human = formatTimestamp(display.iat);
-      if (display.nbf) display._nbf_human = formatTimestamp(display.nbf);
+      if (typeof display.exp === "number") display._exp_human = formatTimestamp(display.exp);
+      if (typeof display.iat === "number") display._iat_human = formatTimestamp(display.iat);
+      if (typeof display.nbf === "number") display._nbf_human = formatTimestamp(display.nbf);
       return JSON.stringify(display, null, 2);
     }
     return `Signature: ${result.signature}\n\n⚠️ Cannot verify signature without the secret key.\nThis tool only decodes — it does not validate.`;
