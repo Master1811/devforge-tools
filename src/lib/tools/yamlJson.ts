@@ -115,8 +115,8 @@ function toYaml(value: YamlValue, indent: number): string {
     return value.map(item => {
       if (typeof item === "object" && item !== null && !Array.isArray(item)) {
         const entries = Object.entries(item);
-        const first = `${pad}- ${entries[0][0]}: ${toYaml(entries[0][1], indent + 1)}`;
-        const rest = entries.slice(1).map(([k, v]) => `${pad}  ${k}: ${toYaml(v, indent + 1)}`);
+        const first = `${pad}- ${entries[0][0]}: ${toYaml(entries[0][1] as YamlValue, indent + 1)}`;
+        const rest = entries.slice(1).map(([k, v]) => `${pad}  ${k}: ${toYaml(v as YamlValue, indent + 1)}`);
         return [first, ...rest].join("\n");
       }
       return `${pad}- ${toYaml(item, indent + 1)}`;
