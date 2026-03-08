@@ -1,16 +1,18 @@
 // Lightweight YAML parser/serializer (handles common cases)
 
+type YamlValue = string | number | boolean | null | YamlValue[] | Record<string, YamlValue>;
+
 export function yamlToJson(yaml: string): string {
   const lines = yaml.split("\n");
   const result = parseYamlLines(lines, 0, 0).value;
   return JSON.stringify(result, null, 2);
 }
 
-function parseYamlLines(lines: string[], start: number, baseIndent: number): { value: any; nextLine: number } {
-  const obj: Record<string, any> = {};
+function parseYamlLines(lines: string[], start: number, baseIndent: number): { value: YamlValue; nextLine: number } {
+  const obj: Record<string, YamlValue> = {};
   let i = start;
   let isArray = false;
-  const arr: any[] = [];
+  const arr: YamlValue[] = [];
 
   while (i < lines.length) {
     const line = lines[i];
@@ -30,8 +32,7 @@ function parseYamlLines(lines: string[], start: number, baseIndent: number): { v
         const colonIdx = val.indexOf(": ");
         const key = val.slice(0, colonIdx);
         const v = parseYamlValue(val.slice(colonIdx + 2));
-        const subObj: Record<string, any> = { [key]: v };
-        // Check for sub-keys
+        const subObj: Record<string, YamlValue> = { [key]: v };
         let j = i + 1;
         while (j < lines.length) {
           const nextLine = lines[j];
@@ -45,7 +46,7 @@ function parseYamlLines(lines: string[], start: number, baseIndent: number): { v
           }
           j++;
         }
-        arr.push(Object.keys(subObj).length > 1 ? subObj : subObj);
+        arr.push(subObj);
         i = j;
       } else {
         arr.push(parseYamlValue(val));
@@ -61,7 +62,6 @@ function parseYamlLines(lines: string[], start: number, baseIndent: number): { v
       const val = trimmed.slice(colonIdx + 1).trim();
 
       if (val === "" || val === "|" || val === ">") {
-        // Nested object or multiline
         const nextNonEmpty = lines.slice(i + 1).findIndex(l => l.trim() !== "");
         if (nextNonEmpty >= 0) {
           const nextIndent = lines[i + 1 + nextNonEmpty].search(/\S/);
@@ -83,7 +83,7 @@ function parseYamlLines(lines: string[], start: number, baseIndent: number): { v
   return { value: isArray ? arr : obj, nextLine: i };
 }
 
-function parseYamlValue(val: string): any {
+function parseYamlValue(val: string): YamlValue {
   if (val === "true" || val === "True") return true;
   if (val === "false" || val === "False") return false;
   if (val === "null" || val === "~" || val === "") return null;
@@ -92,17 +92,17 @@ function parseYamlValue(val: string): any {
   if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'")))
     return val.slice(1, -1);
   if (val.startsWith("[")) {
-    try { return JSON.parse(val); } catch { return val; }
+    try { return JSON.parse(val) as YamlValue; } catch { return val; }
   }
   return val;
 }
 
 export function jsonToYaml(json: string): string {
-  const obj = JSON.parse(json);
+  const obj = JSON.parse(json) as YamlValue;
   return toYaml(obj, 0);
 }
 
-function toYaml(value: any, indent: number): string {
+function toYaml(value: YamlValue, indent: number): string {
   const pad = "  ".repeat(indent);
   if (value === null || value === undefined) return "null";
   if (typeof value === "boolean") return String(value);
@@ -112,7 +112,7 @@ function toYaml(value: any, indent: number): string {
   if (Array.isArray(value)) {
     if (value.length === 0) return "[]";
     return value.map(item => {
-      if (typeof item === "object" && item !== null) {
+      if (typeof item === "object" && item !== null && !Array.isArray(item)) {
         const entries = Object.entries(item);
         const first = `${pad}- ${entries[0][0]}: ${toYaml(entries[0][1], indent + 1)}`;
         const rest = entries.slice(1).map(([k, v]) => `${pad}  ${k}: ${toYaml(v, indent + 1)}`);
