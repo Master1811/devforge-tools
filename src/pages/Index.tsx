@@ -32,6 +32,8 @@ const features = [
   { icon: Zap, title: "Built for Speed", description: "Zero server calls. Sub-millisecond processing. No loading spinners." },
 ];
 
+const ease = [0.16, 1, 0.3, 1] as const;
+
 export default function Index() {
   const scrollToTools = () => {
     document.getElementById("tools")?.scrollIntoView({ behavior: "smooth" });
@@ -47,38 +49,38 @@ export default function Index() {
         <div className="absolute inset-0 bg-background/70" />
         <div className="relative z-10 text-center px-4 max-w-3xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface/60 backdrop-blur text-xs font-mono text-muted-foreground mb-8"
+            transition={{ duration: 0.5, ease }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface/50 backdrop-blur-sm text-xs font-mono text-muted-foreground mb-8"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
             Open source · Client-side · Zero tracking
           </motion.div>
 
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.6 }}
-            className="heading-display text-4xl sm:text-6xl lg:text-7xl mb-5 leading-[1.05]"
+            transition={{ delay: 0.08, duration: 0.6, ease }}
+            className="heading-display text-4xl sm:text-6xl lg:text-7xl mb-5"
           >
             Every tool a developer needs.{" "}
             <span className="text-primary">Free. Forever.</span>
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25, duration: 0.5 }}
-            className="text-base sm:text-lg text-muted-foreground mb-8 font-mono max-w-xl mx-auto"
+            transition={{ delay: 0.2, duration: 0.5, ease }}
+            className="text-base sm:text-lg text-muted-foreground mb-8 font-mono max-w-xl mx-auto leading-relaxed"
           >
             10 tools. No signup. No subscription. Just use it.
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
+            transition={{ delay: 0.35, duration: 0.5, ease }}
             className="flex flex-col sm:flex-row items-center justify-center gap-3"
           >
             <InteractiveHoverButton
@@ -88,24 +90,24 @@ export default function Index() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.55, duration: 0.5 }}
+            transition={{ delay: 0.5, duration: 0.5, ease }}
             className="grid grid-cols-4 gap-2 max-w-sm mx-auto mt-10"
           >
             {stats.map(s => (
-              <div key={s.label} className="p-2.5 rounded-lg border border-border bg-surface/40 backdrop-blur">
-                <p className="heading-display text-lg sm:text-xl text-primary">{s.value}</p>
-                <p className="text-[10px] font-mono text-muted-foreground">{s.label}</p>
+              <div key={s.label} className="p-2.5 rounded-lg border border-border bg-surface/30 backdrop-blur-sm">
+                <p className="heading-display text-lg sm:text-xl text-primary tabular-nums">{s.value}</p>
+                <p className="text-[10px] font-mono text-muted-foreground/60">{s.label}</p>
               </div>
             ))}
           </motion.div>
         </div>
 
         <motion.div
-          animate={{ y: [0, 6, 0] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 text-muted-foreground/40"
+          animate={{ y: [0, 5, 0] }}
+          transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 text-muted-foreground/30"
         >
           <div className="w-5 h-8 rounded-full border-2 border-current flex justify-center pt-1.5">
             <div className="w-1 h-1.5 rounded-full bg-current" />
@@ -116,15 +118,16 @@ export default function Index() {
       {/* Tool Grid */}
       <section id="tools" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.5, ease }}
+          className="text-center mb-14"
         >
           <h2 className="heading-display text-3xl sm:text-4xl mb-3">
             All 10 tools. <span className="text-primary">One place.</span>
           </h2>
-          <p className="text-sm text-muted-foreground font-mono max-w-md mx-auto">
+          <p className="text-[13px] text-muted-foreground font-mono max-w-md mx-auto">
             Click any tool to start — everything runs locally in your browser.
           </p>
         </motion.div>
@@ -138,10 +141,11 @@ export default function Index() {
       {/* Why DevForge */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         <motion.h2
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="heading-display text-2xl sm:text-3xl text-center mb-10"
+          transition={{ duration: 0.5, ease }}
+          className="heading-display text-2xl sm:text-3xl text-center mb-12"
         >
           Why DevForge?
         </motion.h2>
@@ -149,15 +153,17 @@ export default function Index() {
           {features.map((f, i) => (
             <motion.div
               key={f.title}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
-              className="p-5 rounded-xl border border-border bg-surface text-center"
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ delay: i * 0.06, duration: 0.4, ease }}
+              className="group p-6 rounded-xl border border-border bg-surface/60 backdrop-blur-sm text-center transition-all duration-300 ease-out-expo hover:border-primary/20 hover:shadow-[var(--shadow-sm)]"
             >
-              <f.icon className="w-7 h-7 text-primary mx-auto mb-3" />
-              <h3 className="font-display font-bold text-base mb-1.5">{f.title}</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">{f.description}</p>
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4 transition-colors duration-300 group-hover:bg-primary/15">
+                <f.icon className="w-5 h-5 text-primary" />
+              </div>
+              <h3 className="font-display font-bold text-[15px] mb-1.5 tracking-tight">{f.title}</h3>
+              <p className="text-[13px] text-muted-foreground leading-relaxed">{f.description}</p>
             </motion.div>
           ))}
         </div>
