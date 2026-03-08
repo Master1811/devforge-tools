@@ -156,28 +156,36 @@
   100% { transform: translateX(100%); }
 }
 
-/* Text shimmer sweep — applied after words animate in */
-@keyframes text-shimmer {
-  0% { background-position: 200% center; }
-  50% { background-position: -200% center; }
-  100% { background-position: -200% center; }
+/* Text shimmer sweep — a light sweep over primary-colored text */
+@keyframes text-shimmer-sweep {
+  0% { left: -50%; }
+  100% { left: 150%; }
 }
 
 .text-shimmer {
+  position: relative;
   color: hsl(var(--primary));
+  display: inline;
+}
+
+.text-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 40%;
+  height: 100%;
   background: linear-gradient(
     90deg,
-    hsl(var(--primary)) 0%,
-    hsl(var(--primary)) 25%,
-    hsl(0 0% 100% / 0.9) 50%,
-    hsl(var(--primary)) 75%,
-    hsl(var(--primary)) 100%
+    transparent 0%,
+    hsl(0 0% 100% / 0.15) 40%,
+    hsl(0 0% 100% / 0.3) 50%,
+    hsl(0 0% 100% / 0.15) 60%,
+    transparent 100%
   );
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: text-shimmer 2s var(--ease-in-out-smooth) 0.1s 1 forwards;
+  pointer-events: none;
+  animation: text-shimmer-sweep 1.2s var(--ease-in-out-smooth) 0.1s 1 forwards;
+  mix-blend-mode: overlay;
 }
 
 /* Animate-in utilities for keyboard hints */
