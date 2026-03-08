@@ -36,6 +36,7 @@ const features = [
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export default function Index() {
+  const [shimmerReady, setShimmerReady] = useState(false);
   const scrollToTools = () => {
     document.getElementById("tools")?.scrollIntoView({ behavior: "smooth" });
   };
