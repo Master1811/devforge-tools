@@ -83,7 +83,7 @@ export default function Index() {
               </motion.span>
             ))}
             <br className="hidden sm:block" />
-            <span className="text-shimmer inline">
+            <span className={shimmerReady ? "text-shimmer inline" : "text-primary inline"}>
               {"Free. Forever.".split(" ").map((word, i) => (
                 <motion.span
                   key={`accent-${i}`}
@@ -94,6 +94,7 @@ export default function Index() {
                     duration: 0.9,
                     ease: [0.16, 1, 0.3, 1],
                   }}
+                  onAnimationComplete={i === 1 ? () => setShimmerReady(true) : undefined}
                   className="inline-block mr-[0.28em]"
                   style={{
                     perspective: 400,
