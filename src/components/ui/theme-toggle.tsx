@@ -1,5 +1,6 @@
 import { Moon, Sun, Monitor } from "lucide-react";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 type Theme = "dark" | "light" | "system";
 
@@ -28,7 +29,6 @@ export function ThemeToggle() {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // Listen for system theme changes when in system mode
   useEffect(() => {
     if (theme !== "system") return;
     const mql = window.matchMedia("(prefers-color-scheme: dark)");
@@ -41,16 +41,22 @@ export function ThemeToggle() {
     setTheme(prev => prev === "dark" ? "light" : prev === "light" ? "system" : "dark");
   };
 
+  const Icon = theme === "dark" ? Moon : theme === "light" ? Sun : Monitor;
+
   return (
     <button
       onClick={cycle}
-      className="relative p-2 rounded-lg border border-border bg-surface/50 backdrop-blur text-muted-foreground hover:text-foreground transition-all hover:border-primary/40 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.3)]"
+      className={cn(
+        "relative p-2 rounded-lg border border-border",
+        "bg-surface/40 backdrop-blur-sm text-muted-foreground",
+        "hover:text-foreground hover:border-muted-foreground/30 hover:bg-surface/60",
+        "active:scale-[0.92]",
+        "transition-all duration-200 ease-out-expo"
+      )}
       aria-label={`Theme: ${theme}`}
       title={`Theme: ${theme}`}
     >
-      {theme === "dark" && <Moon className="w-4 h-4" />}
-      {theme === "light" && <Sun className="w-4 h-4" />}
-      {theme === "system" && <Monitor className="w-4 h-4" />}
+      <Icon className="w-4 h-4 transition-transform duration-300 ease-out-expo" />
     </button>
   );
 }
