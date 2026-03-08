@@ -81,25 +81,27 @@ export default function Index() {
               </motion.span>
             ))}
             <br className="hidden sm:block" />
-            {"Free. Forever.".split(" ").map((word, i) => (
-              <motion.span
-                key={`accent-${i}`}
-                initial={{ y: "110%", opacity: 0, rotateX: 40 }}
-                animate={{ y: "0%", opacity: 1, rotateX: 0 }}
-                transition={{
-                  delay: 0.15 + 5 * 0.07 + i * 0.09,
-                  duration: 0.9,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="inline-block mr-[0.28em] text-primary"
-                style={{
-                  perspective: 400,
-                  textShadow: "0 0 60px hsl(var(--primary) / 0.3), 0 0 120px hsl(var(--primary) / 0.1)",
-                }}
-              >
-                {word}
-              </motion.span>
-            ))}
+            <span className="text-shimmer inline">
+              {"Free. Forever.".split(" ").map((word, i) => (
+                <motion.span
+                  key={`accent-${i}`}
+                  initial={{ y: "110%", opacity: 0, rotateX: 40 }}
+                  animate={{ y: "0%", opacity: 1, rotateX: 0 }}
+                  transition={{
+                    delay: 0.15 + 5 * 0.07 + i * 0.09,
+                    duration: 0.9,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  className="inline-block mr-[0.28em]"
+                  style={{
+                    perspective: 400,
+                    filter: "drop-shadow(0 0 40px hsl(var(--primary) / 0.25))",
+                  }}
+                >
+                  {word}
+                </motion.span>
+              ))}
+            </span>
           </motion.h1>
 
           <motion.p
