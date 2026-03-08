@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -38,30 +39,32 @@ function ToolSkeleton() {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Suspense fallback={<ToolSkeleton />}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/jwt-decoder" element={<JWTDecoder />} />
-            <Route path="/json-to-typescript" element={<JsonToTypescript />} />
-            <Route path="/sql-formatter" element={<SQLFormatter />} />
-            <Route path="/cron-visualizer" element={<CronVisualizer />} />
-            <Route path="/regex-tester" element={<RegexTester />} />
-            <Route path="/base64-encoder" element={<Base64Encoder />} />
-            <Route path="/curl-converter" element={<CurlConverter />} />
-            <Route path="/yaml-json-converter" element={<YamlJsonConverter />} />
-            <Route path="/markdown-previewer" element={<MarkdownPreviewer />} />
-            <Route path="/password-generator" element={<PasswordGenerator />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Suspense fallback={<ToolSkeleton />}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/jwt-decoder" element={<JWTDecoder />} />
+              <Route path="/json-to-typescript" element={<JsonToTypescript />} />
+              <Route path="/sql-formatter" element={<SQLFormatter />} />
+              <Route path="/cron-visualizer" element={<CronVisualizer />} />
+              <Route path="/regex-tester" element={<RegexTester />} />
+              <Route path="/base64-encoder" element={<Base64Encoder />} />
+              <Route path="/curl-converter" element={<CurlConverter />} />
+              <Route path="/yaml-json-converter" element={<YamlJsonConverter />} />
+              <Route path="/markdown-previewer" element={<MarkdownPreviewer />} />
+              <Route path="/password-generator" element={<PasswordGenerator />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

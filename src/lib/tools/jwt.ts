@@ -9,8 +9,8 @@ export function base64UrlDecode(str: string): string {
 }
 
 export interface JWTResult {
-  header: Record<string, any> | null;
-  payload: Record<string, any> | null;
+  header: Record<string, unknown> | null;
+  payload: Record<string, unknown> | null;
   signature: string;
   isExpired: boolean | null;
   error?: string;
@@ -21,11 +21,11 @@ export function decodeJWT(token: string): JWTResult {
   if (parts.length !== 3) return { header: null, payload: null, signature: "", isExpired: null, error: "Invalid JWT: expected 3 parts separated by dots" };
 
   try {
-    const header = JSON.parse(base64UrlDecode(parts[0]));
-    const payload = JSON.parse(base64UrlDecode(parts[1]));
+    const header = JSON.parse(base64UrlDecode(parts[0])) as Record<string, unknown>;
+    const payload = JSON.parse(base64UrlDecode(parts[1])) as Record<string, unknown>;
     const signature = parts[2];
     let isExpired: boolean | null = null;
-    if (payload.exp) isExpired = payload.exp * 1000 < Date.now();
+    if (typeof payload.exp === "number") isExpired = payload.exp * 1000 < Date.now();
     return { header, payload, signature, isExpired };
   } catch (e) {
     return { header: null, payload: null, signature: "", isExpired: null, error: "Failed to decode JWT: " + (e as Error).message };

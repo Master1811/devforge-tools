@@ -1,3 +1,5 @@
+import DOMPurify from "dompurify";
+
 export function parseMarkdown(md: string): string {
   let html = md;
 
@@ -40,11 +42,16 @@ export function parseMarkdown(md: string): string {
   });
   // Paragraphs
   html = html.replace(/^(?!<[a-z])((?!^\s*$).+)$/gm, "<p>$1</p>");
-  // Sanitize
-  html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
-  html = html.replace(/\son\w+="[^"]*"/gi, "");
 
-  return html;
+  // Sanitize with DOMPurify instead of regex
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      "h1", "h2", "h3", "h4", "h5", "h6", "p", "a", "img", "strong", "em",
+      "code", "pre", "blockquote", "hr", "ul", "ol", "li", "table", "thead",
+      "tbody", "tr", "th", "td", "br", "div", "span",
+    ],
+    ALLOWED_ATTR: ["href", "src", "alt", "class", "target", "rel"],
+  });
 }
 
 export function wordCount(text: string): number {
