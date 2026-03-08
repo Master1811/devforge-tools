@@ -141,7 +141,7 @@ export default function PasswordGeneratorPage() {
               ].map(([key, label]) => (
                 <label key={key} className="flex items-center justify-between text-sm cursor-pointer">
                   <span className="text-muted-foreground">{label}</span>
-                  <input type="checkbox" checked={(opts as Record<string, boolean>)[key] as boolean} onChange={e => setOpts(p => ({ ...p, [key]: e.target.checked }))} className="accent-primary" />
+                  <input type="checkbox" checked={(opts as unknown as Record<string, boolean>)[key]} onChange={e => setOpts(p => ({ ...p, [key]: e.target.checked }))} className="accent-primary" />
                 </label>
               ))}
               <label className="flex items-center justify-between text-sm cursor-pointer">
