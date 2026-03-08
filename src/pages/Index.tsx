@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
+import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import ToolCard from "@/components/shared/ToolCard";
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
