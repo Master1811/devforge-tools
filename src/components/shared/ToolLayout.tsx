@@ -129,29 +129,31 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
               <p className="text-muted-foreground leading-relaxed">{whatIs.content}</p>
             </section>
 
-            <section>
-              <h2 className="heading-display text-2xl mb-4">Frequently Asked Questions</h2>
-              <div className="space-y-4">
-                {faqs.map((faq, i) => (
-                  <details key={i} className="group border border-border rounded-lg bg-surface">
-                    <summary className="px-4 py-3 cursor-pointer font-medium hover:text-primary transition-colors">{faq.q}</summary>
-                    <p className="px-4 pb-4 text-muted-foreground text-sm">{faq.a}</p>
-                  </details>
-                ))}
-              </div>
-            </section>
+            <InfiniteGrid backgroundOnly className="rounded-2xl py-2">
+              <section>
+                <h2 className="heading-display text-2xl mb-4">Frequently Asked Questions</h2>
+                <div className="space-y-4">
+                  {faqs.map((faq, i) => (
+                    <details key={i} className="group border border-border rounded-lg bg-surface/80 backdrop-blur">
+                      <summary className="px-4 py-3 cursor-pointer font-medium hover:text-primary transition-colors">{faq.q}</summary>
+                      <p className="px-4 pb-4 text-muted-foreground text-sm">{faq.a}</p>
+                    </details>
+                  ))}
+                </div>
+              </section>
 
-            <section>
-              <h2 className="heading-display text-2xl mb-4">Related Tools</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {relatedTools.map(t => (
-                  <Link key={t.path} to={t.path} className="block p-4 border border-border rounded-lg bg-surface hover:border-primary/50 transition-colors">
-                    <h3 className="font-semibold mb-1">{t.name}</h3>
-                    <p className="text-xs text-muted-foreground">{t.description}</p>
-                  </Link>
-                ))}
-              </div>
-            </section>
+              <section className="mt-10">
+                <h2 className="heading-display text-2xl mb-4">Related Tools</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {relatedTools.map(t => (
+                    <Link key={t.path} to={t.path} className="block p-4 border border-border rounded-lg bg-surface/80 backdrop-blur hover:border-primary/50 hover:shadow-[0_0_15px_-3px_hsl(var(--primary)/0.3)] transition-all">
+                      <h3 className="font-semibold mb-1">{t.name}</h3>
+                      <p className="text-xs text-muted-foreground">{t.description}</p>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            </InfiniteGrid>
           </div>
 
           {/* Bottom banner ad */}
