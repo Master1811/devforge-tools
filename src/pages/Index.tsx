@@ -99,8 +99,8 @@ export default function Index() {
         }
       >
         <img
-          src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1400&h=900&fit=crop&q=80"
-          alt="DevForge platform preview showing developer tools dashboard"
+          src={platformPreview}
+          alt="DevForge platform dashboard displaying 10 developer utilities including JWT decoder, SQL formatter, and regex tester in a dark-themed interface"
           className="w-full h-full object-cover object-left-top rounded-lg"
           loading="lazy"
           draggable={false}
