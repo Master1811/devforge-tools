@@ -5,6 +5,7 @@ import ToolCard from "@/components/shared/ToolCard";
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
 import { KeyRound, Braces, Database, Clock, Regex, Binary, Terminal, FileJson, FileText, Lock, Zap, Globe, Shield } from "lucide-react";
+import { InfiniteGrid } from "@/components/ui/the-infinite-grid";
 
 const tools = [
   { name: "JWT Decoder", description: "Decode and inspect JSON Web Tokens instantly", path: "/jwt-decoder", icon: KeyRound, tag: "auth" },
@@ -133,6 +134,14 @@ export default function Index() {
             <ToolCard key={tool.path} {...tool} index={i} />
           ))}
         </div>
+      </section>
+
+      {/* Infinite Grid CTA */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
+        <InfiniteGrid
+          title="All tools. Zero setup."
+          subtitle="Move your cursor to reveal the grid. Everything runs client-side."
+        />
       </section>
 
       {/* Why DevForge */}

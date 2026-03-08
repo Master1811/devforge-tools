@@ -5,6 +5,7 @@ import AdContainer from "../ads/AdContainer";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 import { Shield } from "lucide-react";
+import { InfiniteGrid } from "@/components/ui/the-infinite-grid";
 
 interface FAQ { q: string; a: string; }
 interface RelatedTool { name: string; path: string; description: string; }
@@ -87,6 +88,7 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
 
           {/* Tool UI + Sidebar ad — responsive layout */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-6 mb-4">
+            <InfiniteGrid backgroundOnly className="rounded-2xl border border-border p-1">
             <div className="flex gap-6">
               {/* Tool content: full width on mobile, calc(100% - 320px) on desktop when sidebar visible */}
               <div className="w-full lg:w-[calc(100%-320px)] min-w-0">
@@ -105,6 +107,7 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
                 </div>
               </aside>
             </div>
+            </InfiniteGrid>
           </motion.div>
 
           {/* Sidebar ad moves below tool on tablet/mobile */}
