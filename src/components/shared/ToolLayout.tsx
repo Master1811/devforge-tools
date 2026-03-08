@@ -5,6 +5,7 @@ import AdContainer from "../ads/AdContainer";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 import { Shield } from "lucide-react";
+import { useShell } from "@/components/Shell";
 
 interface FAQ { q: string; a: string; }
 interface RelatedTool { name: string; path: string; description: string; }
@@ -23,6 +24,8 @@ interface ToolLayoutProps {
 }
 
 export default function ToolLayout({ title, slug, description, howToUse, whatIs, faqs, relatedTools, children, jsonLd }: ToolLayoutProps) {
+  const shell = useShell();
+
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -79,9 +82,16 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
             <h1 className="heading-display text-3xl sm:text-4xl mb-2">{title}</h1>
             <p className="text-muted-foreground mb-3">{description}</p>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-surface/60 backdrop-blur text-xs font-mono text-muted-foreground">
-              <Shield className="w-3 h-3 text-accent" />
-              100% client-side • No data leaves your browser
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-surface/60 backdrop-blur text-xs font-mono text-muted-foreground">
+                <Shield className="w-3 h-3 text-accent" />
+                100% client-side • No data leaves your browser
+              </div>
+              <div className="inline-flex items-center gap-1 text-[10px] font-mono text-muted-foreground/60">
+                <kbd className="bg-surface2 border border-border px-1 py-0.5 rounded">⌘K</kbd> search
+                <span className="mx-1">·</span>
+                <kbd className="bg-surface2 border border-border px-1 py-0.5 rounded">?</kbd> shortcuts
+              </div>
             </div>
           </motion.div>
 
@@ -92,13 +102,20 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
                 <div className="w-full lg:w-[calc(100%-320px)] min-w-0">
                   {children}
 
+                  {/* Success banner ad — shows after processing */}
+                  {shell?.showSuccessAd && (
+                    <div className="mt-4 relative z-20">
+                      <AdContainer placement="success-banner" show={shell.showSuccessAd} />
+                    </div>
+                  )}
+
                   {/* In-flow ad — isolated from grid */}
                   <div className="mt-6 relative z-20">
                     <AdContainer placement="in-flow" />
                   </div>
                 </div>
 
-                {/* Sidebar ad — isolated from grid */}
+                {/* Desktop sidebar ad — sticky 300x600 */}
                 <aside className="hidden lg:block w-[300px] flex-shrink-0 relative z-20">
                   <div className="sticky top-24">
                     <AdContainer placement="sidebar" className="!flex" />
@@ -108,9 +125,9 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
             </div>
           </motion.div>
 
-          {/* Sidebar ad on mobile — isolated */}
-          <div className="lg:hidden mb-8 relative z-20">
-            <AdContainer placement="sidebar" className="!flex mx-auto" />
+          {/* Mobile sidebar ad (320x100 above How to Use) */}
+          <div className="lg:hidden mb-6 relative z-20">
+            <AdContainer placement="leaderboard" className="!flex mx-auto" />
           </div>
 
           {/* SEO Content */}
