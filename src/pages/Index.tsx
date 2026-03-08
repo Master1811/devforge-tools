@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
+import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import ToolCard from "@/components/shared/ToolCard";
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
@@ -82,6 +83,29 @@ export default function Index() {
         </motion.div>
       </section>
 
+      {/* Container Scroll — Platform Showcase */}
+      <ContainerScroll
+        titleComponent={
+          <>
+            <h2 className="heading-display text-3xl sm:text-4xl text-muted-foreground mb-2">
+              The Platform
+            </h2>
+            <p className="heading-display text-4xl sm:text-5xl lg:text-6xl">
+              All 10 tools.{" "}
+              <span className="text-primary">One place.</span>
+            </p>
+          </>
+        }
+      >
+        <img
+          src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1400&h=900&fit=crop&q=80"
+          alt="DevForge platform preview showing developer tools dashboard"
+          className="w-full h-full object-cover object-left-top rounded-lg"
+          loading="lazy"
+          draggable={false}
+        />
+      </ContainerScroll>
+
       {/* Tool Grid */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <motion.h2
@@ -90,7 +114,7 @@ export default function Index() {
           viewport={{ once: true }}
           className="heading-display text-3xl sm:text-4xl text-center mb-12"
         >
-          The Platform
+          Explore the Tools
         </motion.h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {tools.map((tool, i) => (
