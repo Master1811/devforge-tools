@@ -5,7 +5,6 @@ import AdContainer from "../ads/AdContainer";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 import { Shield } from "lucide-react";
-import { InfiniteGrid } from "@/components/ui/the-infinite-grid";
 
 interface FAQ { q: string; a: string; }
 interface RelatedTool { name: string; path: string; description: string; }
@@ -64,8 +63,8 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
 
       <main className="pt-20 pb-8 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Leaderboard ad — top, above title on mobile */}
-          <div className="mb-4">
+          {/* Leaderboard ad — isolated from grid */}
+          <div className="mb-4 relative z-20">
             <AdContainer placement="leaderboard" />
           </div>
 
@@ -80,38 +79,37 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
             <h1 className="heading-display text-3xl sm:text-4xl mb-2">{title}</h1>
             <p className="text-muted-foreground mb-3">{description}</p>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-surface text-xs font-mono text-muted-foreground">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-surface/60 backdrop-blur text-xs font-mono text-muted-foreground">
               <Shield className="w-3 h-3 text-accent" />
               100% client-side • No data leaves your browser
             </div>
           </motion.div>
 
-          {/* Tool UI + Sidebar ad — responsive layout */}
+          {/* Tool UI + Sidebar ad */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-6 mb-4">
-            <InfiniteGrid backgroundOnly className="rounded-2xl border border-border p-1">
-            <div className="flex gap-6">
-              {/* Tool content: full width on mobile, calc(100% - 320px) on desktop when sidebar visible */}
-              <div className="w-full lg:w-[calc(100%-320px)] min-w-0">
-                {children}
+            <div className="rounded-2xl border border-border p-1">
+              <div className="flex gap-6">
+                <div className="w-full lg:w-[calc(100%-320px)] min-w-0">
+                  {children}
 
-                {/* In-flow rectangle ad — directly below tool content for highest CTR */}
-                <div className="mt-6">
-                  <AdContainer placement="in-flow" />
+                  {/* In-flow ad — isolated from grid */}
+                  <div className="mt-6 relative z-20">
+                    <AdContainer placement="in-flow" />
+                  </div>
                 </div>
+
+                {/* Sidebar ad — isolated from grid */}
+                <aside className="hidden lg:block w-[300px] flex-shrink-0 relative z-20">
+                  <div className="sticky top-24">
+                    <AdContainer placement="sidebar" className="!flex" />
+                  </div>
+                </aside>
               </div>
-
-              {/* Sidebar ad — desktop only, sticky */}
-              <aside className="hidden lg:block w-[300px] flex-shrink-0">
-                <div className="sticky top-24">
-                  <AdContainer placement="sidebar" className="!flex" />
-                </div>
-              </aside>
             </div>
-            </InfiniteGrid>
           </motion.div>
 
-          {/* Sidebar ad moves below tool on tablet/mobile */}
-          <div className="lg:hidden mb-8">
+          {/* Sidebar ad on mobile — isolated */}
+          <div className="lg:hidden mb-8 relative z-20">
             <AdContainer placement="sidebar" className="!flex mx-auto" />
           </div>
 
@@ -129,42 +127,42 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
               <p className="text-muted-foreground leading-relaxed">{whatIs.content}</p>
             </section>
 
-            <InfiniteGrid backgroundOnly className="rounded-2xl py-2">
-              <section>
-                <h2 className="heading-display text-2xl mb-4">Frequently Asked Questions</h2>
-                <div className="space-y-4">
-                  {faqs.map((faq, i) => (
-                    <details key={i} className="group border border-border rounded-lg bg-surface/80 backdrop-blur">
-                      <summary className="px-4 py-3 cursor-pointer font-medium hover:text-primary transition-colors">{faq.q}</summary>
-                      <p className="px-4 pb-4 text-muted-foreground text-sm">{faq.a}</p>
-                    </details>
-                  ))}
-                </div>
-              </section>
+            <section>
+              <h2 className="heading-display text-2xl mb-4">Frequently Asked Questions</h2>
+              <div className="space-y-4">
+                {faqs.map((faq, i) => (
+                  <details key={i} className="group border border-border rounded-lg bg-surface/80 backdrop-blur">
+                    <summary className="px-4 py-3 cursor-pointer font-medium hover:text-primary transition-colors">{faq.q}</summary>
+                    <p className="px-4 pb-4 text-muted-foreground text-sm">{faq.a}</p>
+                  </details>
+                ))}
+              </div>
+            </section>
 
-              <section className="mt-10">
-                <h2 className="heading-display text-2xl mb-4">Related Tools</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {relatedTools.map(t => (
-                    <Link key={t.path} to={t.path} className="block p-4 border border-border rounded-lg bg-surface/80 backdrop-blur hover:border-primary/50 hover:shadow-[0_0_15px_-3px_hsl(var(--primary)/0.3)] transition-all">
-                      <h3 className="font-semibold mb-1">{t.name}</h3>
-                      <p className="text-xs text-muted-foreground">{t.description}</p>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            </InfiniteGrid>
+            <section>
+              <h2 className="heading-display text-2xl mb-4">Related Tools</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {relatedTools.map(t => (
+                  <Link key={t.path} to={t.path} className="block p-4 border border-border rounded-lg bg-surface/80 backdrop-blur hover:border-primary/50 hover:shadow-[0_0_15px_-3px_hsl(var(--primary)/0.3)] transition-all">
+                    <h3 className="font-semibold mb-1">{t.name}</h3>
+                    <p className="text-xs text-muted-foreground">{t.description}</p>
+                  </Link>
+                ))}
+              </div>
+            </section>
           </div>
 
-          {/* Bottom banner ad */}
-          <div className="mt-12">
+          {/* Bottom banner ad — isolated */}
+          <div className="mt-12 relative z-20">
             <AdContainer placement="leaderboard" className="hidden md:flex" />
           </div>
         </div>
       </main>
 
-      {/* Mobile sticky anchor ad */}
-      <AdContainer placement="mobile-sticky" />
+      {/* Mobile sticky anchor ad — isolated */}
+      <div className="relative z-20">
+        <AdContainer placement="mobile-sticky" />
+      </div>
 
       <Footer />
     </>
