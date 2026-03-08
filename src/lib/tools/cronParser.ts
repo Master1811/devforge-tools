@@ -64,7 +64,7 @@ export function parseCron(expression: string): { sentence: string; nextRuns: Dat
 
   const sentence = segments.join(", ") || "Every minute";
 
-  // Calculate next 5 runs
+  // Calculate next 10 runs
   const nextRuns: Date[] = [];
   const now = new Date();
   const d = new Date(now);
@@ -75,7 +75,7 @@ export function parseCron(expression: string): { sentence: string; nextRuns: Dat
   const domVals = parseField(dom, 31);
   const dowVals = parseField(dow, 6);
 
-  for (let i = 0; i < 1440 * 60 && nextRuns.length < 5; i++) {
+  for (let i = 0; i < 1440 * 60 && nextRuns.length < 10; i++) {
     d.setMinutes(d.getMinutes() + 1);
     const matches =
       (minVals.length === 0 || minVals.includes(d.getMinutes())) &&
@@ -86,6 +86,79 @@ export function parseCron(expression: string): { sentence: string; nextRuns: Dat
   }
 
   return { sentence, nextRuns };
+}
+
+export interface CronSafety {
+  safe: boolean;
+  level: "safe" | "caution" | "danger";
+  message: string;
+}
+
+export function checkCronSafety(expression: string): CronSafety {
+  const parts = expression.trim().split(/\s+/);
+  if (parts.length < 5) return { safe: true, level: "safe", message: "" };
+  const [minute, hour, dom, , dow] = parts;
+  
+  if (minute === "*" && hour === "*" && dom === "*" && dow === "*") {
+    return { safe: false, level: "danger", message: "⚠️ Runs every minute! This will execute 1,440 times/day. Are you sure?" };
+  }
+  if (minute.startsWith("*/") && parseInt(minute.slice(2)) <= 1) {
+    return { safe: false, level: "danger", message: "⚠️ Runs every minute. Consider a longer interval." };
+  }
+  if (minute === "*" && hour !== "*") {
+    return { safe: false, level: "caution", message: "⚡ Runs every minute during specified hour(s). Consider adding a minute interval." };
+  }
+  if (minute.startsWith("*/") && parseInt(minute.slice(2)) <= 5) {
+    return { safe: false, level: "caution", message: "⚡ Runs very frequently (every ≤5 min). Make sure your task can handle this load." };
+  }
+  return { safe: true, level: "safe", message: "✅ Schedule looks reasonable." };
+}
+
+const NL_PATTERNS: { pattern: RegExp; cron: string }[] = [
+  { pattern: /^every\s+minute$/i, cron: "* * * * *" },
+  { pattern: /^every\s+hour$/i, cron: "0 * * * *" },
+  { pattern: /^every\s+(\d+)\s+minutes?$/i, cron: "*/{1} * * * *" },
+  { pattern: /^every\s+(\d+)\s+hours?$/i, cron: "0 */{1} * * *" },
+  { pattern: /^daily\s+at\s+midnight$/i, cron: "0 0 * * *" },
+  { pattern: /^daily\s+at\s+noon$/i, cron: "0 12 * * *" },
+  { pattern: /^every\s+day\s+at\s+(\d{1,2})\s*(am|pm)?$/i, cron: "0 {h} * * *" },
+  { pattern: /^every\s+weekday\s+at\s+(\d{1,2})\s*(am|pm)?$/i, cron: "0 {h} * * 1-5" },
+  { pattern: /^every\s+monday$/i, cron: "0 9 * * 1" },
+  { pattern: /^every\s+tuesday$/i, cron: "0 9 * * 2" },
+  { pattern: /^every\s+wednesday$/i, cron: "0 9 * * 3" },
+  { pattern: /^every\s+thursday$/i, cron: "0 9 * * 4" },
+  { pattern: /^every\s+friday$/i, cron: "0 9 * * 5" },
+  { pattern: /^every\s+saturday$/i, cron: "0 9 * * 6" },
+  { pattern: /^every\s+sunday$/i, cron: "0 9 * * 0" },
+  { pattern: /^monthly$/i, cron: "0 0 1 * *" },
+  { pattern: /^weekly$/i, cron: "0 0 * * 0" },
+  { pattern: /^yearly$/i, cron: "0 0 1 1 *" },
+  { pattern: /^every\s+monday\s+at\s+(\d{1,2})\s*(am|pm)?$/i, cron: "0 {h} * * 1" },
+  { pattern: /^every\s+friday\s+at\s+(\d{1,2})\s*(am|pm)?$/i, cron: "0 {h} * * 5" },
+];
+
+export function naturalLanguageToCron(text: string): { cron: string; error?: string } {
+  const trimmed = text.trim();
+  if (!trimmed) return { cron: "", error: "Enter a schedule description" };
+  
+  for (const { pattern, cron } of NL_PATTERNS) {
+    const match = trimmed.match(pattern);
+    if (match) {
+      let result = cron;
+      if (result.includes("{1}")) {
+        result = result.replace("{1}", match[1]);
+      }
+      if (result.includes("{h}")) {
+        let h = parseInt(match[1]);
+        const ampm = match[2]?.toLowerCase();
+        if (ampm === "pm" && h < 12) h += 12;
+        if (ampm === "am" && h === 12) h = 0;
+        result = result.replace("{h}", String(h));
+      }
+      return { cron: result };
+    }
+  }
+  return { cron: "", error: `Could not parse: "${trimmed}". Try "every 5 minutes", "daily at 9am", "every weekday at 3pm"` };
 }
 
 export const PRESETS: { label: string; value: string }[] = [

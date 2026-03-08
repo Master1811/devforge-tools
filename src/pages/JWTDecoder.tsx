@@ -1,9 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import ToolLayout from "@/components/shared/ToolLayout";
 import CodePanel from "@/components/shared/CodePanel";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDebounce } from "@/hooks/useDebounce";
-import { decodeJWT, formatTimestamp } from "@/lib/tools/jwt";
+import { decodeJWT, formatTimestamp, getAlgorithmRisk, getExpiryMessage, CLAIM_EXPLANATIONS } from "@/lib/tools/jwt";
+import { Shield, ShieldAlert, ShieldX, Info } from "lucide-react";
 
 const TABS = ["Header", "Payload", "Signature"] as const;
 
@@ -11,8 +12,11 @@ export default function JWTDecoderPage() {
   const [input, setInput] = useLocalStorage("devforge-jwt-input", "");
   const debounced = useDebounce(input, 200);
   const [tab, setTab] = useState<typeof TABS[number]>("Payload");
+  const [showExplanations, setShowExplanations] = useState(true);
 
   const result = debounced.trim() ? decodeJWT(debounced) : null;
+  const algoRisk = result?.header?.alg ? getAlgorithmRisk(result.header.alg as string) : null;
+  const expiryMsg = result?.payload ? getExpiryMessage(result.payload) : null;
 
   const getOutput = () => {
     if (!result) return "";
@@ -31,7 +35,12 @@ export default function JWTDecoderPage() {
 
   // Token visualization
   const parts = debounced.trim().split(".");
-  const colors = ["text-primary", "text-accent", "text-destructive"];
+  const segmentLabels = ["HEADER", "PAYLOAD", "SIGNATURE"];
+  const segmentColors = [
+    "text-primary bg-primary/10 border-primary/30",
+    "text-accent bg-accent/10 border-accent/30",
+    "text-destructive bg-destructive/10 border-destructive/30",
+  ];
 
   return (
     <ToolLayout
@@ -61,40 +70,103 @@ export default function JWTDecoderPage() {
         { name: "Password Generator", path: "/password-generator", description: "Create secure secrets for JWT signing." },
       ]}
     >
-      {/* Token visualization */}
+      {/* Token Anatomy Diagram */}
       {parts.length === 3 && debounced.trim() && (
-        <div className="mb-4 p-3 rounded-lg bg-surface border border-border font-mono text-xs break-all">
-          {parts.map((p, i) => (
-            <span key={i}>
-              <span className={colors[i]}>{p}</span>
-              {i < 2 && <span className="text-muted-foreground">.</span>}
-            </span>
-          ))}
+        <div className="mb-6 space-y-3">
+          <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Token Anatomy</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            {parts.map((p, i) => (
+              <div key={i} className={`rounded-lg border p-3 ${segmentColors[i]} transition-all hover:scale-[1.02]`}>
+                <p className="text-[10px] font-mono font-bold mb-1 opacity-70">{segmentLabels[i]}</p>
+                <p className="font-mono text-xs break-all line-clamp-2">{p}</p>
+              </div>
+            ))}
+          </div>
+          <div className="font-mono text-xs break-all p-3 rounded-lg bg-surface border border-border">
+            {parts.map((p, i) => (
+              <span key={i}>
+                <span className={segmentColors[i].split(" ")[0]}>{p}</span>
+                {i < 2 && <span className="text-muted-foreground font-bold">.</span>}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Status badge */}
-      {result && result.isExpired !== null && (
-        <div className="mb-4">
-          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-mono ${result.isExpired ? "bg-destructive/20 text-destructive" : "bg-accent/20 text-accent"}`}>
-            {result.isExpired ? "⚠ EXPIRED" : "✓ VALID"}
-          </span>
+      {/* Algorithm Risk + Expiry Badges */}
+      {result && !result.error && (
+        <div className="flex flex-wrap gap-3 mb-4">
+          {/* Expiry status */}
+          {result.isExpired !== null && (
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono ${result.isExpired ? "bg-destructive/20 text-destructive border border-destructive/30" : "bg-accent/20 text-accent border border-accent/30"}`}>
+              {result.isExpired ? "⚠ EXPIRED" : "✓ VALID"}
+              {expiryMsg && <span className="opacity-70">— {expiryMsg}</span>}
+            </span>
+          )}
+
+          {/* Algorithm risk */}
+          {algoRisk && (
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono border ${
+              algoRisk.risk === "critical" ? "bg-destructive/20 text-destructive border-destructive/30" :
+              algoRisk.risk === "warn" ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" :
+              "bg-accent/20 text-accent border-accent/30"
+            }`}>
+              {algoRisk.risk === "critical" ? <ShieldX className="w-3.5 h-3.5" /> :
+               algoRisk.risk === "warn" ? <ShieldAlert className="w-3.5 h-3.5" /> :
+               <Shield className="w-3.5 h-3.5" />}
+              {result.header?.alg as string} — {algoRisk.label}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Algorithm risk description */}
+      {algoRisk && result && !result.error && (
+        <div className={`mb-4 p-3 rounded-lg text-xs font-mono border ${
+          algoRisk.risk === "critical" ? "bg-destructive/10 border-destructive/30 text-destructive" :
+          algoRisk.risk === "warn" ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-400" :
+          "bg-accent/10 border-accent/30 text-accent"
+        }`}>
+          {algoRisk.description}
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <CodePanel value={input} onChange={setInput} label="JWT Input" placeholder="Paste your JWT token here..." minHeight="200px" />
         <div>
-          <div className="flex gap-1 mb-2">
+          <div className="flex gap-1 mb-2 items-center">
             {TABS.map(t => (
               <button key={t} onClick={() => setTab(t)} className={`px-3 py-1.5 rounded-md text-xs font-mono transition-colors ${tab === t ? "bg-primary text-primary-foreground" : "bg-surface2 text-muted-foreground hover:text-foreground"}`}>
                 {t}
               </button>
             ))}
+            <label className="ml-auto flex items-center gap-1.5 text-[10px] text-muted-foreground cursor-pointer">
+              <input type="checkbox" checked={showExplanations} onChange={e => setShowExplanations(e.target.checked)} className="accent-primary" />
+              Explain claims
+            </label>
           </div>
           <CodePanel value={getOutput()} readOnly label={`${tab} Output`} minHeight="200px" />
         </div>
       </div>
+
+      {/* Claim Explanations */}
+      {showExplanations && result?.payload && !result.error && (
+        <div className="mt-4 rounded-lg border border-border bg-surface p-4">
+          <p className="text-xs font-mono text-muted-foreground mb-3 flex items-center gap-1.5">
+            <Info className="w-3.5 h-3.5" /> Claim Reference
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {Object.keys(result.payload).filter(k => !k.startsWith("_")).map(key => (
+              <div key={key} className="flex gap-2 text-xs font-mono p-2 rounded bg-surface2/50">
+                <span className="text-primary font-bold shrink-0">{key}</span>
+                <span className="text-muted-foreground">
+                  {CLAIM_EXPLANATIONS[key] || "Custom claim"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </ToolLayout>
   );
 }
