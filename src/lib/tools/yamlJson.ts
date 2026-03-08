@@ -3,10 +3,10 @@
 type YamlPrimitive = string | number | boolean | null;
 type YamlValue = YamlPrimitive | YamlPrimitive[] | { [key: string]: YamlValue } | YamlValue[];
 
-export function yamlToJson(yaml: string): string {
+export function yamlToJson(yaml: string, minify: boolean = false): string {
   const lines = yaml.split("\n");
   const result = parseYamlLines(lines, 0, 0).value;
-  return JSON.stringify(result, null, 2);
+  return minify ? JSON.stringify(result) : JSON.stringify(result, null, 2);
 }
 
 function parseYamlLines(lines: string[], start: number, baseIndent: number): { value: YamlValue; nextLine: number } {
@@ -25,7 +25,6 @@ function parseYamlLines(lines: string[], start: number, baseIndent: number): { v
 
     const trimmed = line.trim();
 
-    // Array item
     if (trimmed.startsWith("- ")) {
       isArray = true;
       const val = trimmed.slice(2).trim();
@@ -56,7 +55,6 @@ function parseYamlLines(lines: string[], start: number, baseIndent: number): { v
       continue;
     }
 
-    // Key-value
     const colonIdx = trimmed.indexOf(":");
     if (colonIdx > 0) {
       const key = trimmed.slice(0, colonIdx).trim();
@@ -144,4 +142,9 @@ export function detectDirection(input: string): "json-to-yaml" | "yaml-to-json" 
   const trimmed = input.trim();
   if (trimmed.startsWith("{") || trimmed.startsWith("[")) return "json-to-yaml";
   return "yaml-to-json";
+}
+
+export function splitMultiDocYaml(yaml: string): string[] {
+  const docs = yaml.split(/^---\s*$/m).filter(d => d.trim().length > 0);
+  return docs.length > 0 ? docs : [yaml];
 }
