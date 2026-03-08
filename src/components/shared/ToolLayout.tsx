@@ -5,6 +5,7 @@ import AdContainer from "../ads/AdContainer";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 import { Shield } from "lucide-react";
+import { InfiniteGrid } from "@/components/ui/the-infinite-grid";
 
 interface FAQ { q: string; a: string; }
 interface RelatedTool { name: string; path: string; description: string; }
