@@ -36,14 +36,12 @@ const config: Record<AdPlacement, {
   },
 };
 
-// Replace data-ad-slot values with actual AdSense IDs before deploy
 export default function AdContainer({ placement, className }: AdContainerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const c = config[placement];
 
-  // Lazy load via IntersectionObserver
   useEffect(() => {
     if (placement === "mobile-sticky") { setVisible(true); return; }
     const el = ref.current;
@@ -58,11 +56,14 @@ export default function AdContainer({ placement, className }: AdContainerProps) 
 
   if (placement === "mobile-sticky" && dismissed) return null;
 
+  // Shared hover glow style — ads get their own glow, independent of the grid
+  const hoverGlowClass = "transition-shadow duration-300 hover:shadow-[0_0_20px_-4px_hsl(var(--primary)/0.4)] hover:border-primary/40";
+
   if (placement === "mobile-sticky") {
     return (
       <div className={cn("fixed bottom-0 inset-x-0 z-50 flex lg:hidden justify-center p-2 bg-background/80 backdrop-blur-sm border-t border-border", className)}>
         <div
-          className="relative flex items-center justify-center rounded-md border border-border bg-surface"
+          className={cn("relative flex items-center justify-center rounded-md border border-border bg-surface", hoverGlowClass)}
           style={{ width: c.desktopW, height: c.desktopH }}
           data-ad-slot={`devforge-${placement}`}
           data-ad-format="auto"
@@ -86,7 +87,8 @@ export default function AdContainer({ placement, className }: AdContainerProps) 
     <div
       ref={ref}
       className={cn(
-        "mx-auto items-center justify-center rounded-lg border border-border bg-surface/50",
+        "mx-auto items-center justify-center rounded-lg border border-border bg-surface/80 backdrop-blur",
+        hoverGlowClass,
         visibilityClass,
         className
       )}
