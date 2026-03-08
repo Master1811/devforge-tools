@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
