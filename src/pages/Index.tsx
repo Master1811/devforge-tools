@@ -1,11 +1,9 @@
 import { motion } from "framer-motion";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
-import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import ToolCard from "@/components/shared/ToolCard";
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
-import { KeyRound, Braces, Database, Clock, Regex, Binary, Terminal, FileJson, FileText, Lock, Zap, Globe, Shield } from "lucide-react";
-import platformPreview from "@/assets/platform-preview.jpg";
+import { KeyRound, Braces, Database, Clock, Regex, Binary, Terminal, FileJson, FileText, Lock, Zap, Globe, Shield, ArrowDown } from "lucide-react";
 
 const tools = [
   { name: "JWT Decoder", description: "Decode and inspect JSON Web Tokens instantly", path: "/jwt-decoder", icon: KeyRound, tag: "auth" },
@@ -34,90 +32,105 @@ const features = [
 ];
 
 export default function Index() {
+  const scrollToTools = () => {
+    document.getElementById("tools")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <>
       <Navbar />
 
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0"><ShaderAnimation /></div>
-        <div className="absolute inset-0 bg-background/60" />
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
+        <div className="absolute inset-0 bg-background/70" />
+        <div className="relative z-10 text-center px-4 max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface/60 backdrop-blur text-xs font-mono text-muted-foreground mb-8"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+            Open source · Client-side · Zero tracking
+          </motion.div>
+
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="heading-display text-5xl sm:text-7xl lg:text-8xl mb-6"
+            transition={{ delay: 0.1, duration: 0.6 }}
+            className="heading-display text-4xl sm:text-6xl lg:text-7xl mb-5 leading-[1.05]"
           >
-            Every tool a developer{"\n"}needs. <span className="text-primary">Free. Forever.</span>
+            Every tool a developer needs.{" "}
+            <span className="text-primary">Free. Forever.</span>
           </motion.h1>
+
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-lg sm:text-xl text-muted-foreground mb-10 font-mono"
+            transition={{ delay: 0.25, duration: 0.5 }}
+            className="text-base sm:text-lg text-muted-foreground mb-8 font-mono max-w-xl mx-auto"
           >
             10 tools. No signup. No subscription. Just use it.
           </motion.p>
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-lg mx-auto"
+            className="flex flex-col sm:flex-row items-center justify-center gap-3"
+          >
+            <button
+              onClick={scrollToTools}
+              className="px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity flex items-center gap-2"
+            >
+              Explore Tools
+              <ArrowDown className="w-4 h-4" />
+            </button>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55, duration: 0.5 }}
+            className="grid grid-cols-4 gap-2 max-w-sm mx-auto mt-10"
           >
             {stats.map(s => (
-              <div key={s.label} className="p-3 rounded-lg border border-border bg-surface/50 backdrop-blur">
-                <p className="heading-display text-2xl text-primary">{s.value}</p>
-                <p className="text-xs font-mono text-muted-foreground">{s.label}</p>
+              <div key={s.label} className="p-2.5 rounded-lg border border-border bg-surface/40 backdrop-blur">
+                <p className="heading-display text-lg sm:text-xl text-primary">{s.value}</p>
+                <p className="text-[10px] font-mono text-muted-foreground">{s.label}</p>
               </div>
             ))}
           </motion.div>
         </div>
+
         <motion.div
-          animate={{ y: [0, 8, 0] }}
+          animate={{ y: [0, 6, 0] }}
           transition={{ repeat: Infinity, duration: 2 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-muted-foreground"
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 text-muted-foreground/40"
         >
-          <div className="w-5 h-8 rounded-full border-2 border-muted-foreground flex justify-center pt-1.5">
-            <div className="w-1 h-2 rounded-full bg-muted-foreground animate-pulse-glow" />
+          <div className="w-5 h-8 rounded-full border-2 border-current flex justify-center pt-1.5">
+            <div className="w-1 h-1.5 rounded-full bg-current" />
           </div>
         </motion.div>
       </section>
 
-      {/* Container Scroll — Platform Showcase */}
-      <ContainerScroll
-        titleComponent={
-          <>
-            <h2 className="heading-display text-3xl sm:text-4xl text-muted-foreground mb-2">
-              The Platform
-            </h2>
-            <p className="heading-display text-4xl sm:text-5xl lg:text-6xl">
-              All 10 tools.{" "}
-              <span className="text-primary">One place.</span>
-            </p>
-          </>
-        }
-      >
-        <img
-          src={platformPreview}
-          alt="DevForge platform dashboard displaying 10 developer utilities including JWT decoder, SQL formatter, and regex tester in a dark-themed interface"
-          className="w-full h-full object-cover object-left-top rounded-lg"
-          loading="lazy"
-          draggable={false}
-        />
-      </ContainerScroll>
-
       {/* Tool Grid */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <motion.h2
+      <section id="tools" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="heading-display text-3xl sm:text-4xl text-center mb-12"
+          className="text-center mb-12"
         >
-          Explore the Tools
-        </motion.h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <h2 className="heading-display text-3xl sm:text-4xl mb-3">
+            All 10 tools. <span className="text-primary">One place.</span>
+          </h2>
+          <p className="text-sm text-muted-foreground font-mono max-w-md mx-auto">
+            Click any tool to start — everything runs locally in your browser.
+          </p>
+        </motion.div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {tools.map((tool, i) => (
             <ToolCard key={tool.path} {...tool} index={i} />
           ))}
@@ -125,20 +138,28 @@ export default function Index() {
       </section>
 
       {/* Why DevForge */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="heading-display text-2xl sm:text-3xl text-center mb-10"
+        >
+          Why DevForge?
+        </motion.h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {features.map((f, i) => (
             <motion.div
               key={f.title}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="p-6 rounded-xl border border-border bg-surface text-center"
+              transition={{ delay: i * 0.08 }}
+              className="p-5 rounded-xl border border-border bg-surface text-center"
             >
-              <f.icon className="w-8 h-8 text-primary mx-auto mb-3" />
-              <h3 className="font-display font-bold text-lg mb-2">{f.title}</h3>
-              <p className="text-sm text-muted-foreground">{f.description}</p>
+              <f.icon className="w-7 h-7 text-primary mx-auto mb-3" />
+              <h3 className="font-display font-bold text-base mb-1.5">{f.title}</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">{f.description}</p>
             </motion.div>
           ))}
         </div>
