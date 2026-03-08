@@ -107,6 +107,7 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
                 </div>
               </aside>
             </div>
+            </InfiniteGrid>
           </motion.div>
 
           {/* Sidebar ad moves below tool on tablet/mobile */}

@@ -136,6 +136,14 @@ export default function Index() {
         </div>
       </section>
 
+      {/* Infinite Grid CTA */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
+        <InfiniteGrid
+          title="All tools. Zero setup."
+          subtitle="Move your cursor to reveal the grid. Everything runs client-side."
+        />
+      </section>
+
       {/* Why DevForge */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         <motion.h2
