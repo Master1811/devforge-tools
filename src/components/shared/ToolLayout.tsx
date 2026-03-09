@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import { ReactNode } from "react";
 import { motion } from "framer-motion";
 import AdContainer from "../ads/AdContainer";
@@ -76,7 +78,7 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
 
           {/* Breadcrumb */}
           <nav className="text-[11px] font-mono text-muted-foreground/60 mb-5">
-            <Link to="/" className="hover:text-foreground transition-colors duration-200">Home</Link>
+            <Link href="/" className="hover:text-foreground transition-colors duration-200">Home</Link>
             <span className="mx-2 text-muted-foreground/30">/</span>
             <span className="text-foreground/80">{title}</span>
           </nav>
@@ -186,7 +188,7 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
                 {relatedTools.map(t => (
                   <Link
                     key={t.path}
-                    to={t.path}
+                    href={t.path}
                     className={cn(
                       "group block p-4 border border-border rounded-xl bg-surface/60 backdrop-blur-sm",
                       "transition-all duration-300 ease-out-expo",

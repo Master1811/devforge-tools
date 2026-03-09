@@ -1,3 +1,5 @@
+"use client";
+
 import { Moon, Sun, Monitor } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";

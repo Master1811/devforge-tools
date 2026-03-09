@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import ToolLayout from "@/components/shared/ToolLayout";
 import CodePanel from "@/components/shared/CodePanel";

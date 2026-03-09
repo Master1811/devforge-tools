@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "next/link";
 
 const tools = [
   { name: "JWT Decoder", path: "/jwt-decoder" },
@@ -21,7 +21,7 @@ export default function Footer() {
           {tools.map(t => (
             <Link
               key={t.path}
-              to={t.path}
+              href={t.path}
               className="text-[13px] text-muted-foreground hover:text-foreground transition-colors duration-200 py-0.5"
             >
               {t.name}

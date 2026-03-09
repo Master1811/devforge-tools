@@ -1,4 +1,7 @@
-import { Link, useLocation } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Search } from "lucide-react";
@@ -18,9 +21,9 @@ const toolNames: Record<string, string> = {
 };
 
 export default function Navbar() {
-  const location = useLocation();
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
-  const currentTool = toolNames[location.pathname];
+  const currentTool = toolNames[pathname];
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10);
@@ -43,7 +46,7 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         <Link
-          to="/"
+          href="/"
           className="heading-display text-lg tracking-tight group flex items-center gap-0.5"
         >
           <span className="transition-colors duration-200">Dev</span>

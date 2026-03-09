@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect, useState, useCallback, createContext, useContext, type ReactNode } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useRouter, usePathname } from "next/navigation";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import {
   KeyRound, Braces, Database, Clock, Regex, Binary, Terminal, FileJson, FileText, Lock,
@@ -37,8 +39,8 @@ export function ShellProvider({ children }: { children: ReactNode }) {
   const [cmdOpen, setCmdOpen] = useState(false);
   const [hintsOpen, setHintsOpen] = useState(false);
   const [showSuccessAd, setShowSuccessAd] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Callback registries
   const [processCallbacks] = useState<Set<() => void>>(() => new Set());
@@ -102,11 +104,11 @@ export function ShellProvider({ children }: { children: ReactNode }) {
   }, [hintsOpen, triggerProcess, triggerCopyResult]);
 
   const goToTool = (path: string) => {
-    navigate(path);
+    router.push(path);
     setCmdOpen(false);
   };
 
-  const isHome = location.pathname === "/";
+  const isHome = pathname === "/";
 
   return (
     <ShellContext.Provider value={{ triggerProcess, triggerCopyResult, onProcess, onCopyResult, showSuccessAd, setShowSuccessAd }}>

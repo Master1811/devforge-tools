@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback, useEffect } from "react";
 import ToolLayout from "@/components/shared/ToolLayout";
 import { useLocalStorage } from "@/hooks/useLocalStorage";

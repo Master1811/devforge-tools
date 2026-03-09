@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,7 +23,7 @@ export default function ToolCard({ name, description, path, icon: Icon, tag, ind
       transition={{ delay: index * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
     >
       <Link
-        to={path}
+        href={path}
         className={cn(
           "group relative block p-5 rounded-xl border border-border bg-surface/80 backdrop-blur-sm",
           "transition-all duration-300 ease-out-expo",
