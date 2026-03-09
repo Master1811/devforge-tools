@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import ToolLayout from "@/components/shared/ToolLayout";
 import CodePanel from "@/components/shared/CodePanel";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDebounce } from "@/hooks/useDebounce";
 import { convertCurl, harToCurl, Language } from "@/lib/tools/curlConverter";
-import { Upload } from "lucide-react";
+import { Upload, Copy } from "lucide-react";
 
 const LANGS: { id: Language; label: string }[] = [
   { id: "fetch", label: "JS Fetch" },
@@ -18,12 +19,37 @@ const LANGS: { id: Language; label: string }[] = [
 ];
 
 export default function CurlConverterPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [input, setInput] = useLocalStorage("devforge-curl-input", "");
   const [lang, setLang] = useState<Language>("fetch");
   const [harMode, setHarMode] = useState(false);
   const [harCurls, setHarCurls] = useState<string[]>([]);
   const [selectedHar, setSelectedHar] = useState(0);
   const debounced = useDebounce(input, 200);
+
+  // Read from URL params on mount
+  useEffect(() => {
+    const curlParam = searchParams.get("curl");
+    const langParam = searchParams.get("lang");
+
+    if (curlParam && !input) setInput(decodeURIComponent(curlParam));
+    if (langParam && ["fetch", "python", "axios", "go", "php", "ruby"].includes(langParam)) {
+      setLang(langParam as Language);
+    }
+  }, [searchParams, setInput]);
+
+  // Update URL when inputs change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (input.trim()) params.set("curl", encodeURIComponent(input.trim()));
+    if (lang !== "fetch") params.set("lang", lang);
+
+    const newUrl = params.toString() ? `?${params.toString()}` : "";
+    if (newUrl !== window.location.search) {
+      router.replace(`/curl-converter${newUrl}`, { scroll: false });
+    }
+  }, [input, lang, router]);
 
   let output = "";
   const effectiveInput = harMode && harCurls.length > 0 ? harCurls[selectedHar] || "" : debounced;
@@ -81,6 +107,16 @@ export default function CurlConverterPage() {
             {l.label}
           </button>
         ))}
+        {output && lang === "fetch" && (
+          <button
+            onClick={() => navigator.clipboard.writeText(output)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono bg-accent/10 text-accent hover:bg-accent/20 transition-colors ml-2"
+            title="Copy fetch code"
+          >
+            <Copy className="w-3 h-3" />
+            Copy Fetch
+          </button>
+        )}
         <label className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono bg-surface2 border border-border hover:border-primary/40 transition-colors text-muted-foreground hover:text-foreground cursor-pointer">
           <Upload className="w-3.5 h-3.5" /> Import HAR
           <input type="file" accept=".har,.json" className="hidden" onChange={handleHarFile} />

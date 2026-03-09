@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import ToolLayout from "@/components/shared/ToolLayout";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -251,6 +252,8 @@ function profileRegex(pattern: string, flags: string, testStr: string): Performa
 }
 
 export default function RegexTesterPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [pattern, setPattern] = useLocalStorage("devforge-regex-pattern", "");
   const [testStr, setTestStr] = useLocalStorage("devforge-regex-test", "");
   const [flags, setFlags] = useState<string[]>(["g"]);
@@ -259,6 +262,30 @@ export default function RegexTesterPage() {
   const [showProfiler, setShowProfiler] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [copiedPattern, setCopiedPattern] = useState<string | null>(null);
+
+  // Read from URL params on mount
+  useEffect(() => {
+    const patternParam = searchParams.get("pattern");
+    const flagsParam = searchParams.get("flags");
+    const testParam = searchParams.get("test");
+
+    if (patternParam && !pattern) setPattern(decodeURIComponent(patternParam));
+    if (flagsParam) setFlags(flagsParam.split(""));
+    if (testParam && !testStr) setTestStr(decodeURIComponent(testParam));
+  }, [searchParams, setPattern, setTestStr]);
+
+  // Update URL when inputs change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (pattern.trim()) params.set("pattern", encodeURIComponent(pattern.trim()));
+    if (flags.length > 0 && flags.join("") !== "g") params.set("flags", flags.join(""));
+    if (testStr.trim()) params.set("test", encodeURIComponent(testStr.trim()));
+
+    const newUrl = params.toString() ? `?${params.toString()}` : "";
+    if (newUrl !== window.location.search) {
+      router.replace(`/regex-tester${newUrl}`, { scroll: false });
+    }
+  }, [pattern, flags, testStr, router]);
 
   const dPattern = useDebounce(pattern, 150);
   const dTest = useDebounce(testStr, 150);
@@ -554,7 +581,25 @@ export default function RegexTesterPage() {
         {/* Match list */}
         {matches.length > 0 && (
           <div className="p-4 rounded-lg bg-surface border border-border space-y-2">
-            <p className="text-xs font-mono text-muted-foreground mb-2">Match Details</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-mono text-muted-foreground">Match Details</p>
+              {matches.some(m => m.groups.length > 0) && (
+                <button
+                  onClick={() => {
+                    const groupsText = matches
+                      .filter(m => m.groups.length > 0)
+                      .map((m, i) => `Match ${i + 1}:\n${m.groups.map((g, j) => `  Group ${j + 1}: "${g}"`).join('\n')}`)
+                      .join('\n\n');
+                    navigator.clipboard.writeText(groupsText);
+                  }}
+                  className="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-mono bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                  title="Copy all capture groups"
+                >
+                  <Copy className="w-3 h-3" />
+                  Copy Groups
+                </button>
+              )}
+            </div>
             {matches.map((m, i) => (
               <div key={i} className="text-sm font-mono flex flex-wrap gap-3">
                 <span className="text-primary">#{i + 1}</span>

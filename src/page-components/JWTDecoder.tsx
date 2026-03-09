@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import ToolLayout from "@/components/shared/ToolLayout";
 import CodePanel from "@/components/shared/CodePanel";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
@@ -10,13 +11,15 @@ import {
   verifyJWTSignature, compareJWTs, decodeBatchJWTs,
   SignatureVerifyResult, TokenCompareResult, BatchDecodeResult
 } from "@/lib/tools/jwt";
-import { Shield, ShieldAlert, ShieldX, Info, Key, GitCompare, Layers, CheckCircle, XCircle, AlertTriangle, Minus, Plus, ChevronDown, ChevronRight } from "lucide-react";
+import { Shield, ShieldAlert, ShieldX, Info, Key, GitCompare, Layers, CheckCircle, XCircle, AlertTriangle, Minus, Plus, ChevronDown, ChevronRight, Copy } from "lucide-react";
 
 const TABS = ["Header", "Payload", "Signature"] as const;
 const MODES = ["decode", "verify", "compare", "batch"] as const;
 type Mode = typeof MODES[number];
 
 export default function JWTDecoderPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [input, setInput] = useLocalStorage("devforge-jwt-input", "");
   const debounced = useDebounce(input, 200);
   const [tab, setTab] = useState<typeof TABS[number]>("Payload");
@@ -36,6 +39,36 @@ export default function JWTDecoderPage() {
   const [batchInput, setBatchInput] = useLocalStorage("devforge-jwt-batch", "");
   const [batchResults, setBatchResults] = useState<BatchDecodeResult[]>([]);
   const [expandedBatch, setExpandedBatch] = useState<number | null>(null);
+
+  // Read from URL params on mount
+  useEffect(() => {
+    const token = searchParams.get("token");
+    const modeParam = searchParams.get("mode");
+    const secretParam = searchParams.get("secret");
+    const token2Param = searchParams.get("token2");
+    const batchParam = searchParams.get("batch");
+
+    if (token && !input) setInput(token);
+    if (modeParam && MODES.includes(modeParam as Mode)) setMode(modeParam as Mode);
+    if (secretParam) setSecret(secretParam);
+    if (token2Param) setToken2(token2Param);
+    if (batchParam) setBatchInput(batchParam);
+  }, [searchParams, setInput, setToken2, setBatchInput]);
+
+  // Update URL when inputs change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (input.trim()) params.set("token", input.trim());
+    if (mode !== "decode") params.set("mode", mode);
+    if (secret.trim()) params.set("secret", secret.trim());
+    if (token2.trim()) params.set("token2", token2.trim());
+    if (batchInput.trim()) params.set("batch", batchInput.trim());
+
+    const newUrl = params.toString() ? `?${params.toString()}` : "";
+    if (newUrl !== window.location.search) {
+      router.replace(`/jwt-decoder${newUrl}`, { scroll: false });
+    }
+  }, [input, mode, secret, token2, batchInput, router]);
 
   const result = debounced.trim() ? decodeJWT(debounced) : null;
   const algoRisk = result?.header?.alg ? getAlgorithmRisk(result.header.alg as string) : null;
@@ -217,6 +250,16 @@ export default function JWTDecoderPage() {
                     {t}
                   </button>
                 ))}
+                {tab === "Payload" && result?.payload && !result.error && (
+                  <button
+                    onClick={() => navigator.clipboard.writeText(JSON.stringify(result.payload, null, 2))}
+                    className="flex items-center gap-1.5 px-2 py-1.5 rounded text-xs font-mono bg-accent/10 text-accent hover:bg-accent/20 transition-colors ml-2"
+                    title="Copy payload JSON"
+                  >
+                    <Copy className="w-3 h-3" />
+                    Copy JSON
+                  </button>
+                )}
                 <label className="ml-auto flex items-center gap-1.5 text-[10px] text-muted-foreground cursor-pointer">
                   <input type="checkbox" checked={showExplanations} onChange={e => setShowExplanations(e.target.checked)} className="accent-primary" />
                   Explain claims

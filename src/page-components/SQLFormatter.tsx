@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import ToolLayout from "@/components/shared/ToolLayout";
 import CodePanel from "@/components/shared/CodePanel";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatSQL, analyzeSQLComplexity, SQLDialect, generateExplainPlan, formatExplainPlan, getDialectTips } from "@/lib/tools/sqlFormatter";
-import { AlertTriangle, BarChart3, Lightbulb, Play, ChevronDown, ChevronRight, Database } from "lucide-react";
+import { AlertTriangle, BarChart3, Lightbulb, Play, ChevronDown, ChevronRight, Database, Copy } from "lucide-react";
 
 const DIALECTS: { id: SQLDialect; label: string; color: string }[] = [
   { id: "standard", label: "Standard", color: "bg-muted" },
@@ -18,6 +19,8 @@ const DIALECTS: { id: SQLDialect; label: string; color: string }[] = [
 ];
 
 export default function SQLFormatterPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [input, setInput] = useLocalStorage("devforge-sql-input", "");
   const [indent, setIndent] = useState(2);
   const [uppercase, setUppercase] = useState(true);
@@ -25,6 +28,35 @@ export default function SQLFormatterPage() {
   const [showExplain, setShowExplain] = useState(false);
   const [showTips, setShowTips] = useState(false);
   const debounced = useDebounce(input, 200);
+
+  // Read from URL params on mount
+  useEffect(() => {
+    const sqlParam = searchParams.get("sql");
+    const dialectParam = searchParams.get("dialect");
+    const indentParam = searchParams.get("indent");
+    const uppercaseParam = searchParams.get("uppercase");
+
+    if (sqlParam && !input) setInput(decodeURIComponent(sqlParam));
+    if (dialectParam && ["standard", "postgresql", "mysql", "sqlite", "oracle", "mssql"].includes(dialectParam)) {
+      setDialect(dialectParam as SQLDialect);
+    }
+    if (indentParam) setIndent(parseInt(indentParam) || 2);
+    if (uppercaseParam) setUppercase(uppercaseParam === "true");
+  }, [searchParams, setInput]);
+
+  // Update URL when inputs change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (input.trim()) params.set("sql", encodeURIComponent(input.trim()));
+    if (dialect !== "postgresql") params.set("dialect", dialect);
+    if (indent !== 2) params.set("indent", indent.toString());
+    if (!uppercase) params.set("uppercase", "false");
+
+    const newUrl = params.toString() ? `?${params.toString()}` : "";
+    if (newUrl !== window.location.search) {
+      router.replace(`/sql-formatter${newUrl}`, { scroll: false });
+    }
+  }, [input, dialect, indent, uppercase, router]);
 
   let output = "";
   if (debounced.trim()) {
@@ -141,6 +173,17 @@ export default function SQLFormatterPage() {
 
       {/* Action Buttons */}
       <div className="flex gap-3 mt-4">
+        {output && (
+          <button
+            onClick={() => navigator.clipboard.writeText(output)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-mono bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+            title="Copy formatted SQL"
+          >
+            <Copy className="w-4 h-4" />
+            Copy SQL
+          </button>
+        )}
+
         <button
           onClick={() => setShowExplain(!showExplain)}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-mono transition-all ${
