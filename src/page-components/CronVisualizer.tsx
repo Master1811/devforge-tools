@@ -60,14 +60,14 @@ export default function CronVisualizerPage() {
     >
       <div className="space-y-6">
         {/* Natural Language Input */}
-        <div className="p-4 rounded-lg bg-surface border border-border">
+        <div className="p-4 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--foreground)/0.1)]">
           <p className="text-xs font-mono text-muted-foreground mb-2">Natural Language → Cron</p>
           <div className="flex gap-2">
             <input
               value={nlInput}
               onChange={e => setNlInput(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleNlConvert()}
-              className="flex-1 bg-surface2 border border-border rounded-lg px-4 py-2.5 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="flex-1 bg-[hsl(var(--foreground)/0.03)] border border-[hsl(var(--foreground)/0.1)] rounded-lg px-4 py-2.5 font-mono text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-[hsl(var(--foreground)/0.2)] hover:border-[hsl(var(--foreground)/0.15)] caret-primary transition-[border-color,box-shadow] duration-200"
               placeholder='Try "every weekday at 9am" or "every 15 minutes"'
               spellCheck={false}
             />
@@ -88,11 +88,11 @@ export default function CronVisualizerPage() {
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
-            className="flex-1 bg-surface border border-border rounded-lg px-4 py-3 font-mono text-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            className="flex-1 bg-[hsl(var(--card))] border border-[hsl(var(--foreground)/0.1)] rounded-lg px-4 py-3 font-mono text-lg text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-[hsl(var(--foreground)/0.2)] hover:border-[hsl(var(--foreground)/0.15)] caret-primary transition-[border-color,box-shadow] duration-200"
             placeholder="* * * * *"
             spellCheck={false}
           />
-          <select value={timezone} onChange={e => setTimezone(e.target.value)} className="bg-surface border border-border rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+          <select value={timezone} onChange={e => setTimezone(e.target.value)} className="bg-[hsl(var(--card))] border border-[hsl(var(--foreground)/0.1)] rounded-lg px-3 py-2 font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-[hsl(var(--foreground)/0.2)] hover:border-[hsl(var(--foreground)/0.15)] transition-[border-color,box-shadow] duration-200">
             {TIMEZONES.map(tz => (
               <option key={tz} value={tz}>{tz}</option>
             ))}

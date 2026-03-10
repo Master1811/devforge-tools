@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
 import ToolCard from "@/components/shared/ToolCard";
-import { KeyRound, Braces, Database, Clock, Regex, Binary, Terminal, FileJson, FileText, Lock, Zap, Globe, Shield, Search, Filter } from "lucide-react";
+import { KeyRound, Braces, Database, Clock, Regex, Binary, Terminal, FileJson, FileText, Lock, Zap, Globe, Shield, Search, Filter, Code } from "lucide-react";
 
 const allTools = [
   {
@@ -18,20 +18,28 @@ const allTools = [
     keywords: ["jwt", "token", "decode", "inspect", "header", "payload", "signature", "expiration"]
   },
   {
-    name: "JSON to TypeScript",
-    description: "Generate TypeScript interfaces from JSON. Perfect for API responses and data validation.",
-    path: "/json-to-typescript",
+    name: "JSON to BigQuery Schema",
+    description: "Generate BigQuery table schemas from JSON data. Handles nested objects, arrays, and automatic type inference.",
+    path: "/json-to-bigquery-schema",
     icon: Braces,
-    tags: ["typescript", "json", "types", "api"],
-    keywords: ["json", "typescript", "interface", "type", "api", "schema", "validation"]
+    tags: ["bigquery", "json", "schema", "database"],
+    keywords: ["json", "bigquery", "schema", "bq", "table", "type", "inference", "nested"]
   },
   {
-    name: "SQL Formatter",
-    description: "Beautify and format SQL queries. Supports PostgreSQL, MySQL, SQLite, Oracle, MS SQL with EXPLAIN plans.",
-    path: "/sql-formatter",
+    name: "JSON to TypeScript",
+    description: "Convert JSON data to TypeScript interfaces, types, Zod schemas, or Yup validation schemas with automatic type inference.",
+    path: "/json-to-typescript",
+    icon: Code,
+    tags: ["typescript", "json", "schema", "types"],
+    keywords: ["json", "typescript", "interface", "type", "zod", "yup", "schema", "inference"]
+  },
+  {
+    name: "SQL Optimizer",
+    description: "Analyze SQL queries for performance issues in Snowflake and Databricks. Detect optimization opportunities.",
+    path: "/sql-optimizer",
     icon: Database,
-    tags: ["database", "sql", "formatting", "optimization"],
-    keywords: ["sql", "formatter", "postgresql", "mysql", "sqlite", "oracle", "explain", "query"]
+    tags: ["database", "sql", "optimization", "performance"],
+    keywords: ["sql", "optimizer", "snowflake", "databricks", "performance", "query", "analysis"]
   },
   {
     name: "Cron Visualizer",
@@ -82,12 +90,12 @@ const allTools = [
     keywords: ["markdown", "preview", "editor", "documentation", "writing", "render"]
   },
   {
-    name: "Password Generator",
-    description: "Cryptographically secure password generation. Create strong passwords with custom requirements.",
-    path: "/password-generator",
-    icon: Lock,
-    tags: ["security", "password", "generator", "crypto"],
-    keywords: ["password", "generator", "security", "crypto", "random", "strong"]
+    name: "Password Policy Auditor",
+    description: "Validate passwords against enterprise security policies including NIST, OWASP, and corporate standards.",
+    path: "/password-policy-auditor",
+    icon: Shield,
+    tags: ["security", "password", "policy", "enterprise"],
+    keywords: ["password", "policy", "auditor", "nist", "owasp", "corporate", "security", "compliance"]
   },
 ];
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import CurlConverterPage from "@/page-components/CurlConverter";
 
 export const metadata: Metadata = {
@@ -15,7 +16,19 @@ export const metadata: Metadata = {
   },
 };
 
+function PageLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-pulse text-muted-foreground">Loading...</div>
+    </div>
+  );
+}
+
 export default function Page() {
-  return <CurlConverterPage />;
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <CurlConverterPage />
+    </Suspense>
+  );
 }
 

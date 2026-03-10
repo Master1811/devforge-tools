@@ -89,12 +89,12 @@ export default function MarkdownPreviewerPage() {
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Write Markdown here..."
-          className="w-full bg-surface border border-border rounded-lg p-4 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-y"
+          className="w-full bg-[hsl(var(--card))] border border-[hsl(var(--foreground)/0.1)] rounded-lg p-4 font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-[hsl(var(--foreground)/0.2)] hover:border-[hsl(var(--foreground)/0.15)] resize-y placeholder:text-muted-foreground/50 caret-primary transition-[border-color,box-shadow] duration-200 selection:bg-primary/20"
           style={{ minHeight: "400px" }}
           spellCheck={false}
         />
         <div
-          className="bg-surface border border-border rounded-lg p-6 overflow-auto prose prose-invert prose-sm max-w-none"
+          className="bg-[hsl(var(--card))] border border-[hsl(var(--foreground)/0.1)] rounded-lg p-6 overflow-auto prose prose-invert prose-sm max-w-none"
           style={{ minHeight: "400px" }}
           dangerouslySetInnerHTML={{ __html: html || '<p class="text-muted-foreground">Preview will appear here...</p>' }}
         />

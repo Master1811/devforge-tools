@@ -26,11 +26,20 @@ export default function CodePanel({ value, onChange, readOnly = false, label, pl
   }, [value]);
 
   return (
-    <div className="rounded-xl border border-border bg-surface/80 backdrop-blur-sm overflow-hidden shadow-[var(--shadow-xs)] transition-shadow duration-300 focus-within:shadow-[var(--shadow-sm)] focus-within:border-muted-foreground/20">
+    <div className={cn(
+      "rounded-xl overflow-hidden",
+      // Stable dark surface background - no grid patterns, no backdrop-blur that might cause artifacts
+      "bg-[hsl(var(--card))] border border-[hsl(var(--foreground)/0.1)]",
+      // Subtle shadow for elevation
+      "shadow-[var(--shadow-xs)]",
+      // Focus-within state for the container
+      "transition-[border-color,box-shadow] duration-200 ease-out",
+      "focus-within:shadow-[var(--shadow-sm)] focus-within:border-[hsl(var(--foreground)/0.15)]"
+    )}>
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-surface2/50">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[hsl(var(--foreground)/0.08)] bg-[hsl(var(--foreground)/0.03)]">
         <span className="font-mono text-[11px] text-muted-foreground tracking-wide uppercase">{label}</span>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <span className="font-mono text-[10px] text-muted-foreground/60 tabular-nums">
             {charCount} chars · {lineCount} lines
           </span>
@@ -38,9 +47,9 @@ export default function CodePanel({ value, onChange, readOnly = false, label, pl
             <button
               onClick={() => onChange?.("")}
               className={cn(
-                "p-1 rounded-md transition-all duration-200 ease-out-expo",
+                "p-1.5 rounded-md transition-colors duration-150",
                 "text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10",
-                "active:scale-90"
+                "active:scale-95"
               )}
               title="Clear"
             >
@@ -51,9 +60,9 @@ export default function CodePanel({ value, onChange, readOnly = false, label, pl
             <button
               onClick={handleCopy}
               className={cn(
-                "p-1 rounded-md transition-all duration-200 ease-out-expo",
-                "text-muted-foreground/50 hover:text-foreground hover:bg-muted",
-                "active:scale-90",
+                "p-1.5 rounded-md transition-colors duration-150",
+                "text-muted-foreground/50 hover:text-foreground hover:bg-[hsl(var(--foreground)/0.08)]",
+                "active:scale-95",
                 copied && "text-accent hover:text-accent"
               )}
               title="Copy"
@@ -64,13 +73,27 @@ export default function CodePanel({ value, onChange, readOnly = false, label, pl
         </div>
       </div>
 
-      {/* Editor */}
+      {/* Editor textarea - clean, distraction-free typing area */}
       <textarea
         value={value}
         onChange={e => onChange?.(e.target.value)}
         readOnly={readOnly}
         placeholder={placeholder}
-        className="w-full bg-transparent font-mono text-sm p-4 resize-y focus:outline-none placeholder:text-muted-foreground/30 leading-relaxed selection:bg-primary/20"
+        className={cn(
+          "w-full font-mono text-sm p-4 resize-y",
+          // Transparent background to show container's bg
+          "bg-transparent",
+          // High contrast text
+          "text-foreground",
+          // Clean focus state - no outline, container handles visual feedback
+          "focus:outline-none",
+          // Placeholder styling
+          "placeholder:text-muted-foreground/40",
+          // Good line height for code
+          "leading-relaxed",
+          // Selection and caret
+          "selection:bg-primary/20 caret-primary"
+        )}
         style={{ minHeight }}
         spellCheck={false}
       />

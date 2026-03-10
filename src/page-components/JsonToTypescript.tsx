@@ -1,149 +1,291 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Copy, Download, Settings, Code, FileJson } from "lucide-react";
 import ToolLayout from "@/components/shared/ToolLayout";
 import CodePanel from "@/components/shared/CodePanel";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { jsonToTypescript, JsonToTsOptions } from "@/lib/tools/jsonToTs";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDebounce } from "@/hooks/useDebounce";
-import { jsonToTypescript, JsonToTsOptions } from "@/lib/tools/jsonToTs";
 
-type OutputFormat = "typescript" | "zod" | "yup";
+const sampleJson = `{
+  "user": {
+    "id": 123,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "isActive": true,
+    "profile": {
+      "avatar": "https://example.com/avatar.jpg",
+      "bio": "Software developer",
+      "skills": ["JavaScript", "TypeScript", "React"]
+    },
+    "lastLogin": "2024-01-15T10:30:00Z"
+  },
+  "metadata": {
+    "version": "1.0",
+    "createdAt": "2024-01-01T00:00:00Z"
+  }
+}`;
 
 export default function JsonToTypescriptPage() {
-  const [input, setInput] = useLocalStorage("devforge-json-ts-input", "");
-  const [useExport, setUseExport] = useState(true);
-  const [useType, setUseType] = useState(false);
-  const [useReadonly, setUseReadonly] = useState(false);
-  const [strictNulls, setStrictNulls] = useState(false);
-  const [outputFormat, setOutputFormat] = useState<OutputFormat>("typescript");
-  const [prevOutput, setPrevOutput] = useState<string>("");
-  const [showDiff, setShowDiff] = useState(false);
-  const debounced = useDebounce(input, 200);
-  const lastOutput = useRef<string>("");
+  const [input, setInput] = useLocalStorage("json-to-ts-input", sampleJson);
+  const [output, setOutput] = useState("");
+  const [error, setError] = useState("");
 
-  let output = "";
-  let error = "";
-  if (debounced.trim()) {
+  const [options, setOptions] = useLocalStorage<JsonToTsOptions>("json-to-ts-options", {
+    useExport: true,
+    useType: false,
+    useReadonly: false,
+    strictNulls: false,
+    outputFormat: "typescript"
+  });
+
+  const debouncedInput = useDebounce(input, 300);
+
+  const processJson = useCallback(() => {
+    if (!debouncedInput.trim()) {
+      setOutput("");
+      setError("");
+      return;
+    }
+
     try {
-      const opts: JsonToTsOptions = { useExport, useType, useReadonly, strictNulls, outputFormat };
-      output = jsonToTypescript(debounced, opts);
-      // Track for diff
-      if (output !== lastOutput.current && lastOutput.current) {
-        setPrevOutput(lastOutput.current);
-      }
-      lastOutput.current = output;
-    } catch (e) { error = "Invalid JSON: " + (e as Error).message; }
-  }
+      const result = jsonToTypescript(debouncedInput, options);
+      setOutput(result);
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid JSON");
+      setOutput("");
+    }
+  }, [debouncedInput, options]);
 
-  // Simple diff computation
-  const diffLines = showDiff && prevOutput ? computeDiff(prevOutput, output) : null;
+  // Process on input or options change
+  useEffect(() => {
+    processJson();
+  }, [processJson]);
+
+  const copyToClipboard = async () => {
+    if (output) {
+      await navigator.clipboard.writeText(output);
+    }
+  };
+
+  const downloadAsFile = () => {
+    if (output) {
+      const blob = new Blob([output], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "types.ts";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const handleOptionChange = (key: keyof JsonToTsOptions, value: any) => {
+    setOptions(prev => ({ ...prev, [key]: value }));
+  };
 
   return (
     <ToolLayout
-      title="JSON to TypeScript Interface Generator"
+      title="JSON to TypeScript Converter"
       slug="json-to-typescript"
-      description="Convert JSON to TypeScript interfaces, Zod schemas, or Yup schemas instantly. Generate accurate types from any JSON — free, no signup required."
-      keywords={["json to typescript", "json to ts online", "generate typescript types from json", "json to zod schema"]}
-      howToUse={["Paste your JSON into the input panel.", "TypeScript interfaces are generated automatically in real-time.", "Choose output format (TypeScript, Zod, Yup) and toggle options."]}
-      whatIs={{ title: "What is JSON to TypeScript Conversion?", content: "When working with TypeScript, you often receive JSON data from APIs and need corresponding type definitions. A JSON to TypeScript interface generator analyzes the structure of your JSON — detecting strings, numbers, booleans, arrays, nested objects, and null values — and produces clean TypeScript interfaces. This eliminates the tedious manual work of writing types for API responses. Our tool handles arrays with mixed types by creating union types, generates PascalCase interface names from object keys, and properly handles nullable fields. All processing happens in your browser — your JSON data is never sent to any server." }}
+      description="Convert JSON data to TypeScript interfaces, types, Zod schemas, or Yup validation schemas. Supports nested objects, arrays, and automatic type inference."
+      keywords={["json to typescript", "typescript interface generator", "json schema", "type inference", "zod schema", "yup validation"]}
+      howToUse={[
+        "Paste your JSON object into the input panel.",
+        "Choose your output format: TypeScript, Zod schema, or Yup schema.",
+        "Configure options like export keywords, readonly properties, and strict nulls.",
+        "Copy or download the generated TypeScript code."
+      ]}
+      whatIs={{
+        title: "What is JSON to TypeScript Conversion?",
+        content: "This tool automatically generates TypeScript interfaces, types, Zod validation schemas, or Yup schemas from JSON data. It analyzes your JSON structure and creates type-safe TypeScript code with proper type inference for primitives, objects, and arrays. The tool supports nested structures, optional properties, and various output formats for different validation libraries. All processing happens in your browser — your JSON data is never sent to any server."
+      }}
       faqs={[
-        { q: "Can it handle nested JSON objects?", a: "Yes. The generator recursively processes nested objects and creates separate named interfaces for each level, using PascalCase naming derived from the parent key." },
-        { q: "How does it handle arrays with mixed types?", a: "If an array contains elements of different types, the generator creates a union type (e.g., (string | number)[]). If all elements are the same type, it uses a simple array type." },
-        { q: "What's the difference between interface and type alias?", a: "Interfaces are extendable and can be merged, making them ideal for object shapes. Type aliases are more flexible and can represent unions, intersections, and primitives. Both work for most use cases." },
-        { q: "Can it generate Zod schemas?", a: "Yes! Select 'Zod' from the output format selector to generate runtime-validated Zod schemas from your JSON data." },
-        { q: "What is strict null checks mode?", a: "When enabled, null values in your JSON become optional fields (key?: type) instead of explicit null types, matching TypeScript's strict null checking behavior." },
+        {
+          q: "What output formats are supported?",
+          a: "The tool supports TypeScript interfaces/types, Zod validation schemas, and Yup validation schemas. Each format generates appropriate code for type checking and validation."
+        },
+        {
+          q: "How does it handle nested objects and arrays?",
+          a: "Nested objects become separate interfaces/types with proper references. Arrays are typed correctly whether they contain primitives or objects. Complex nested structures are handled recursively."
+        },
+        {
+          q: "What are the configuration options?",
+          a: "You can choose to use export keywords, generate types instead of interfaces, make properties readonly, enable strict null checking, and select different output formats."
+        },
+        {
+          q: "Can I use this for API response typing?",
+          a: "Yes! This is perfect for generating TypeScript types from API responses. Just paste your JSON response and get ready-to-use TypeScript interfaces."
+        }
       ]}
       relatedTools={[
-        { name: "JWT Decoder", path: "/jwt-decoder", description: "Decode JWT payloads and generate types for their claims." },
-        { name: "YAML ↔ JSON Converter", path: "/yaml-json-converter", description: "Convert YAML configs to JSON before generating types." },
-        { name: "cURL Converter", path: "/curl-converter", description: "Convert API calls to code, then type the responses." },
+        {
+          name: "JSON to BigQuery Schema",
+          path: "/json-to-bigquery-schema",
+          description: "Generate BigQuery table schemas from JSON data"
+        },
+        {
+          name: "YAML ↔ JSON",
+          path: "/yaml-json-converter",
+          description: "Convert between YAML and JSON formats"
+        },
+        {
+          name: "Base64 Encoder",
+          path: "/base64-encoder",
+          description: "Encode and decode Base64 strings and files"
+        }
       ]}
     >
-      <div className="flex flex-wrap gap-3 mb-4 items-center">
-        {/* Output format selector */}
-        <div className="flex rounded-lg border border-border overflow-hidden">
-          {(["typescript", "zod", "yup"] as const).map(fmt => (
-            <button key={fmt} onClick={() => setOutputFormat(fmt)} className={`px-3 py-1.5 text-xs font-mono transition-colors ${outputFormat === fmt ? "bg-primary text-primary-foreground" : "bg-surface text-muted-foreground hover:text-foreground"}`}>
-              {fmt === "typescript" ? "TypeScript" : fmt === "zod" ? "Zod" : "Yup"}
-            </button>
-          ))}
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Input Panel */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <FileJson className="w-5 h-5 text-blue-500" />
+            <h3 className="text-lg font-semibold">JSON Input</h3>
+          </div>
 
-        <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-          <input type="checkbox" checked={useExport} onChange={e => setUseExport(e.target.checked)} className="accent-primary" />
-          Export
-        </label>
-        {outputFormat === "typescript" && (
-          <>
-            <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-              <input type="checkbox" checked={useType} onChange={e => setUseType(e.target.checked)} className="accent-primary" />
-              Type alias
-            </label>
-            <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-              <input type="checkbox" checked={useReadonly} onChange={e => setUseReadonly(e.target.checked)} className="accent-primary" />
-              Readonly
-            </label>
-          </>
-        )}
-        <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-          <input type="checkbox" checked={strictNulls} onChange={e => setStrictNulls(e.target.checked)} className="accent-primary" />
-          Strict nulls
-        </label>
-        {prevOutput && (
-          <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer ml-auto">
-            <input type="checkbox" checked={showDiff} onChange={e => setShowDiff(e.target.checked)} className="accent-primary" />
-            Show diff
-          </label>
-        )}
-      </div>
+          <CodePanel
+            value={input}
+            onChange={setInput}
+            label="JSON Input"
+            placeholder="Paste your JSON here..."
+            language="json"
+          />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <CodePanel value={input} onChange={setInput} label="JSON Input" placeholder='{"name": "John", "age": 30}' />
-        {showDiff && diffLines ? (
-          <div className="rounded-lg border border-border bg-surface overflow-hidden">
-            <div className="px-3 py-2 border-b border-border bg-surface2">
-              <span className="font-mono text-xs text-muted-foreground">Diff View</span>
+          {/* Options Panel */}
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <h4 className="font-medium">Options</h4>
             </div>
-            <div className="p-4 font-mono text-sm overflow-auto" style={{ minHeight: "200px" }}>
-              {diffLines.map((line, i) => (
-                <div key={i} className={`${
-                  line.type === "added" ? "bg-accent/10 text-accent" :
-                  line.type === "removed" ? "bg-destructive/10 text-destructive line-through" :
-                  "text-muted-foreground"
-                }`}>
-                  <span className="select-none opacity-50 mr-2">{line.type === "added" ? "+" : line.type === "removed" ? "-" : " "}</span>
-                  {line.text}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="useExport"
+                    checked={options.useExport}
+                    onCheckedChange={(checked) => handleOptionChange("useExport", checked)}
+                  />
+                  <Label htmlFor="useExport">Use export keyword</Label>
                 </div>
-              ))}
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="useType"
+                    checked={options.useType}
+                    onCheckedChange={(checked) => handleOptionChange("useType", checked)}
+                  />
+                  <Label htmlFor="useType">Use type instead of interface</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="useReadonly"
+                    checked={options.useReadonly}
+                    onCheckedChange={(checked) => handleOptionChange("useReadonly", checked)}
+                  />
+                  <Label htmlFor="useReadonly">Make properties readonly</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="strictNulls"
+                    checked={options.strictNulls}
+                    onCheckedChange={(checked) => handleOptionChange("strictNulls", checked)}
+                  />
+                  <Label htmlFor="strictNulls">Strict null checking</Label>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="outputFormat">Output Format</Label>
+                <Select
+                  value={options.outputFormat}
+                  onValueChange={(value: "typescript" | "zod" | "yup") =>
+                    handleOptionChange("outputFormat", value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="typescript">TypeScript</SelectItem>
+                    <SelectItem value="zod">Zod Schema</SelectItem>
+                    <SelectItem value="yup">Yup Schema</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
-        ) : (
-          <CodePanel value={error || output} readOnly label={`${outputFormat === "typescript" ? "TypeScript" : outputFormat === "zod" ? "Zod Schema" : "Yup Schema"} Output`} />
-        )}
+        </div>
+
+        {/* Output Panel */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Code className="w-5 h-5 text-green-500" />
+              <h3 className="text-lg font-semibold">
+                {options.outputFormat === "typescript" ? "TypeScript" :
+                 options.outputFormat === "zod" ? "Zod Schema" : "Yup Schema"} Output
+              </h3>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={copyToClipboard}
+                disabled={!output}
+                className="flex items-center gap-2"
+              >
+                <Copy className="w-4 h-4" />
+                Copy
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadAsFile}
+                disabled={!output}
+                className="flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Download
+              </Button>
+            </div>
+          </div>
+
+          <CodePanel
+            value={error || output}
+            readOnly
+            label={`${options.outputFormat === "typescript" ? "TypeScript" : options.outputFormat === "zod" ? "Zod Schema" : "Yup Schema"} Output`}
+            placeholder="Generated code will appear here..."
+            language={options.outputFormat === "typescript" ? "typescript" : "javascript"}
+          />
+
+          {output && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-sm text-gray-600 dark:text-gray-400 bg-green-50 dark:bg-green-900/20 p-3 rounded-lg"
+            >
+              <strong>Success!</strong> Generated {options.outputFormat} code from your JSON input.
+              {options.outputFormat === "zod" && " Make sure to install zod: `npm install zod`"}
+              {options.outputFormat === "yup" && " Make sure to install yup: `npm install yup`"}
+            </motion.div>
+          )}
+        </div>
       </div>
     </ToolLayout>
   );
-}
-
-interface DiffLine { type: "same" | "added" | "removed"; text: string }
-
-function computeDiff(prev: string, curr: string): DiffLine[] {
-  const prevLines = prev.split("\n");
-  const currLines = curr.split("\n");
-  const result: DiffLine[] = [];
-  const maxLen = Math.max(prevLines.length, currLines.length);
-  
-  for (let i = 0; i < maxLen; i++) {
-    const p = prevLines[i];
-    const c = currLines[i];
-    if (p === c) {
-      result.push({ type: "same", text: p || "" });
-    } else {
-      if (p !== undefined && !currLines.includes(p)) result.push({ type: "removed", text: p });
-      if (c !== undefined && !prevLines.includes(c)) result.push({ type: "added", text: c });
-      if (p !== undefined && currLines.includes(p)) result.push({ type: "same", text: p });
-      if (c !== undefined && prevLines.includes(c)) result.push({ type: "same", text: c });
-    }
-  }
-  return result;
 }

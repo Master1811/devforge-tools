@@ -1,258 +1,223 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState } from "react";
 import ToolLayout from "@/components/shared/ToolLayout";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
-  generatePassword, generatePassphrase, calculateEntropy,
-  crackTimeEstimate, strengthLabel, PasswordOptions
-} from "@/lib/tools/passwordGen";
-import { Copy, Check, RefreshCw, Download, ShieldCheck } from "lucide-react";
+  auditPasswordPolicy,
+  auditPasswordAgainstAllPolicies,
+  calculatePasswordEntropy,
+  PASSWORD_POLICIES
+} from "@/lib/tools/passwordAuditor";
+import { Shield, CheckCircle, XCircle, AlertTriangle, Info } from "lucide-react";
 
-export default function PasswordGeneratorPage() {
-  const [opts, setOpts] = useLocalStorage<PasswordOptions>("devforge-pw-opts", {
-    length: 16, uppercase: true, lowercase: true, numbers: true, symbols: true, excludeAmbiguous: false,
-  });
-  const [mode, setMode] = useState<"password" | "passphrase">("password");
-  const [phraseWords, setPhraseWords] = useState(4);
-  const [delimiter, setDelimiter] = useState("-");
-  const [count, setCount] = useState(1);
-  const [passwords, setPasswords] = useState<string[]>([]);
-  const [copied, setCopied] = useState<number | null>(null);
-  const [policy, setPolicy] = useState("");
-  const [policyResult, setPolicyResult] = useState<string[]>([]);
+type PolicyKey = keyof typeof PASSWORD_POLICIES;
 
-  const generate = useCallback(() => {
-    const pws = Array.from({ length: count }, () =>
-      mode === "password" ? generatePassword(opts) : generatePassphrase(phraseWords, delimiter)
-    );
-    setPasswords(pws);
-  }, [opts, mode, phraseWords, delimiter, count]);
+export default function PasswordPolicyAuditorPage() {
+  const [password, setPassword] = useLocalStorage("devforge-pw-audit-input", "");
+  const [selectedPolicy, setSelectedPolicy] = useState<PolicyKey>("corporate");
+  const debouncedPassword = useDebounce(password, 300);
 
-  useEffect(() => { generate(); }, [generate]);
+  const auditResult = debouncedPassword.trim()
+    ? auditPasswordPolicy(debouncedPassword, selectedPolicy)
+    : null;
 
-  const entropy = mode === "password" ? calculateEntropy(opts) : Math.floor(phraseWords * Math.log2(1000));
-  const strength = strengthLabel(entropy);
+  const allPoliciesResult = debouncedPassword.trim()
+    ? auditPasswordAgainstAllPolicies(debouncedPassword)
+    : [];
 
-  const copyPw = (idx: number) => {
-    navigator.clipboard.writeText(passwords[idx]);
-    setCopied(idx);
-    setTimeout(() => setCopied(null), 1500);
-  };
+  const entropy = debouncedPassword ? calculatePasswordEntropy(debouncedPassword) : 0;
 
-  const exportCsv = () => {
-    const csv = "Password\n" + passwords.map(p => `"${p}"`).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "passwords.csv"; a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // Policy checker
-  const checkPolicy = useCallback(() => {
-    if (!policy.trim() || passwords.length === 0) { setPolicyResult([]); return; }
-    const pw = passwords[0];
-    const results: string[] = [];
-    const lower = policy.toLowerCase();
-    
-    // Parse common policy patterns
-    const minLenMatch = lower.match(/(?:min(?:imum)?|at least)\s*(\d+)\s*(?:char|length)/);
-    if (minLenMatch && pw.length < parseInt(minLenMatch[1])) {
-      results.push(`✗ Minimum ${minLenMatch[1]} characters required (current: ${pw.length})`);
+  const getSeverityIcon = (severity: 'error' | 'warning' | 'info') => {
+    switch (severity) {
+      case 'error': return <XCircle className="w-4 h-4 text-red-500" />;
+      case 'warning': return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
+      case 'info': return <Info className="w-4 h-4 text-blue-500" />;
     }
-    if (lower.includes("uppercase") && !/[A-Z]/.test(pw)) results.push("✗ Missing uppercase letter");
-    if (lower.includes("lowercase") && !/[a-z]/.test(pw)) results.push("✗ Missing lowercase letter");
-    if ((lower.includes("number") || lower.includes("digit")) && !/\d/.test(pw)) results.push("✗ Missing number");
-    if ((lower.includes("special") || lower.includes("symbol")) && !/[^A-Za-z0-9]/.test(pw)) results.push("✗ Missing special character");
-    
-    if (results.length === 0) results.push("✓ Password meets all detected policy requirements");
-    setPolicyResult(results);
-  }, [policy, passwords]);
+  };
 
-  useEffect(() => { checkPolicy(); }, [checkPolicy]);
-
-  // Keyboard shortcut: Space to regenerate
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.code === "Space" && e.target === document.body) { e.preventDefault(); generate(); }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [generate]);
-
-  // Crack timeline milestones
-  const crackTimeline = [
-    { label: "Online attack (1K/s)", factor: Math.pow(2, entropy) / 1000 },
-    { label: "Fast hash (10B/s)", factor: Math.pow(2, entropy) / 10_000_000_000 },
-    { label: "GPU cluster (1T/s)", factor: Math.pow(2, entropy) / 1_000_000_000_000 },
-  ].map(({ label, factor }) => ({
-    label,
-    time: factor < 1 ? "instant" : factor < 60 ? `${Math.floor(factor)}s` :
-      factor < 3600 ? `${Math.floor(factor / 60)}m` :
-      factor < 86400 ? `${Math.floor(factor / 3600)}h` :
-      factor < 31536000 ? `${Math.floor(factor / 86400)}d` :
-      factor > 1e15 ? "∞" :
-      factor > 1e9 ? `${(factor / 31536000 / 1e9).toFixed(1)}B yr` :
-      factor > 1e6 ? `${(factor / 31536000 / 1e6).toFixed(1)}M yr` :
-      `${Math.floor(factor / 31536000)} yr`,
-  }));
+  const getSeverityColor = (severity: 'error' | 'warning' | 'info') => {
+    switch (severity) {
+      case 'error': return 'text-red-600 bg-red-50 border-red-200';
+      case 'warning': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'info': return 'text-blue-600 bg-blue-50 border-blue-200';
+    }
+  };
 
   return (
     <ToolLayout
-      title="Secure Password Generator Online"
-      slug="password-generator"
-      description="Generate cryptographically secure passwords using crypto.getRandomValues(). Entropy scoring, bulk generation, passphrase mode — free, no signup."
-      keywords={["secure password generator", "random password generator", "strong password generator online", "passphrase generator"]}
-      howToUse={["Configure length, character types, and options.", "Click Regenerate or press Space for a new password.", "Copy your password — it's generated locally and never transmitted."]}
-      whatIs={{ title: "What Makes a Password Secure?", content: "A secure password has high entropy — meaning it would take an impractical amount of time for an attacker to guess through brute force. Password strength depends on length and the size of the character set used. Our secure password generator uses crypto.getRandomValues(), a cryptographically secure random number generator built into browsers — unlike Math.random(), which is predictable and unsuitable for security purposes. The tool calculates entropy in bits and estimates crack time assuming 10 billion guesses per second (a realistic rate for modern GPU clusters). A password with 80+ bits of entropy is considered very strong. For maximum security, we also offer passphrase mode — generating random words that are easier to remember but equally secure." }}
+      title="Enterprise Password Policy Auditor"
+      slug="password-policy-auditor"
+      description="Validate passwords against enterprise security policies including NIST, OWASP, and corporate standards. Check complexity, entropy, and compliance requirements."
+      keywords={["password policy auditor", "enterprise password validation", "nist password policy", "owasp password guidelines", "corporate password requirements"]}
+      howToUse={[
+        "Enter a password to audit in the input field.",
+        "Select a security policy (NIST, OWASP, Corporate) to validate against.",
+        "Review the compliance score and specific violations.",
+        "See how the password performs against all policies simultaneously."
+      ]}
+      whatIs={{
+        title: "What is Enterprise Password Policy Auditing?",
+        content: "Enterprise password policies enforce security standards to protect against credential-based attacks. This auditor validates passwords against industry frameworks like NIST 800-63B (government standard), OWASP guidelines (web application security), and common corporate requirements. It checks character complexity, length requirements, entropy calculations, and blacklisted patterns. The tool provides compliance scores and actionable recommendations for password policy enforcement. All analysis happens in your browser — passwords are never transmitted or stored on any server."
+      }}
       faqs={[
-        { q: "Why use crypto.getRandomValues() instead of Math.random()?", a: "Math.random() uses a pseudo-random algorithm that can be predicted. crypto.getRandomValues() uses the operating system's cryptographic random number generator, providing true randomness suitable for security applications." },
-        { q: "How long should my password be?", a: "At minimum 12 characters with mixed character types. For sensitive accounts, use 16+ characters. Longer passwords exponentially increase the number of possible combinations." },
-        { q: "What are ambiguous characters?", a: "Characters like 0/O (zero/letter O) and l/1 (lowercase L/one) that look similar and cause confusion. Excluding them makes passwords easier to read and type manually." },
-        { q: "Is passphrase mode as secure as random characters?", a: "Yes, if you use enough words. A 5-word passphrase from a 1000-word list has about 50 bits of entropy. Use 6+ words for high-security applications." },
-        { q: "What is the policy checker?", a: "Paste your organization's password policy (e.g., 'minimum 12 characters, must include uppercase, number, and special character') and we'll validate the generated password against it." },
+        {
+          q: "What policies are supported?",
+          a: "We support NIST 800-63B (government standard), OWASP guidelines (web application security), and common Corporate password requirements with customizable complexity rules."
+        },
+        {
+          q: "How is entropy calculated?",
+          a: "Entropy measures password randomness using the formula: log2(charset_size ^ length). Higher entropy means stronger passwords that are harder to crack."
+        },
+        {
+          q: "Can I customize policies?",
+          a: "Currently we provide industry-standard policies. For custom policies, consider the rules as a foundation and adjust your requirements accordingly."
+        },
+        {
+          q: "Is this for enforcing policies or just auditing?",
+          a: "This is an auditing tool to validate passwords against policies. For enforcement, integrate these rules into your authentication systems."
+        },
+        {
+          q: "What makes a password compliant?",
+          a: "Compliance depends on the selected policy. Generally, longer passwords with mixed character types and good entropy are more secure and compliant."
+        },
       ]}
       relatedTools={[
-        { name: "JWT Decoder", path: "/jwt-decoder", description: "Generate signing secrets for JWT tokens." },
-        { name: "Base64 Encoder", path: "/base64-encoder", description: "Encode passwords for configuration files." },
-        { name: "cURL Converter", path: "/curl-converter", description: "Use generated passwords in API authentication." },
+        {
+          name: "JWT Decoder",
+          path: "/jwt-decoder",
+          description: "Decode and validate JWT tokens for authentication systems."
+        },
+        {
+          name: "Base64 Encoder",
+          path: "/base64-encoder",
+          description: "Encode sensitive data for secure transmission."
+        },
+        {
+          name: "Regex Tester",
+          path: "/regex-tester",
+          description: "Test password validation regex patterns."
+        },
       ]}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Config */}
-        <div className="space-y-4 lg:col-span-1">
-          <div className="flex rounded-lg border border-border overflow-hidden">
-            <button onClick={() => setMode("password")} className={`flex-1 px-3 py-2 text-xs font-mono ${mode === "password" ? "bg-primary text-primary-foreground" : "bg-surface text-muted-foreground"}`}>Password</button>
-            <button onClick={() => setMode("passphrase")} className={`flex-1 px-3 py-2 text-xs font-mono ${mode === "passphrase" ? "bg-primary text-primary-foreground" : "bg-surface text-muted-foreground"}`}>Passphrase</button>
-          </div>
-
-          {mode === "password" ? (
-            <>
-              <div>
-                <label className="text-xs font-mono text-muted-foreground mb-1 flex justify-between">
-                  Length <span className="text-foreground">{opts.length}</span>
-                </label>
-                <input type="range" min={8} max={128} value={opts.length} onChange={e => setOpts(p => ({ ...p, length: Number(e.target.value) }))} className="w-full accent-primary" />
-              </div>
-              {[
-                ["uppercase", "A-Z"],
-                ["lowercase", "a-z"],
-                ["numbers", "0-9"],
-                ["symbols", "!@#$"],
-              ].map(([key, label]) => (
-                <label key={key} className="flex items-center justify-between text-sm cursor-pointer">
-                  <span className="text-muted-foreground">{label}</span>
-                  <input type="checkbox" checked={(opts as unknown as Record<string, boolean>)[key]} onChange={e => setOpts(p => ({ ...p, [key]: e.target.checked }))} className="accent-primary" />
-                </label>
-              ))}
-              <label className="flex items-center justify-between text-sm cursor-pointer">
-                <span className="text-muted-foreground">Exclude ambiguous</span>
-                <input type="checkbox" checked={opts.excludeAmbiguous} onChange={e => setOpts(p => ({ ...p, excludeAmbiguous: e.target.checked }))} className="accent-primary" />
-              </label>
-            </>
-          ) : (
-            <>
-              <div>
-                <label className="text-xs font-mono text-muted-foreground mb-1 flex justify-between">
-                  Words <span className="text-foreground">{phraseWords}</span>
-                </label>
-                <input type="range" min={3} max={10} value={phraseWords} onChange={e => setPhraseWords(Number(e.target.value))} className="w-full accent-primary" />
-              </div>
-              <div>
-                <label className="text-xs font-mono text-muted-foreground mb-1 block">Delimiter</label>
-                <input value={delimiter} onChange={e => setDelimiter(e.target.value)} className="w-full bg-surface border border-border rounded px-3 py-1.5 font-mono text-sm" />
-              </div>
-            </>
-          )}
-
-          <div>
-            <label className="text-xs font-mono text-muted-foreground mb-1 block">Bulk generate</label>
-            <div className="flex gap-1">
-              {[1, 5, 10, 20].map(n => (
-                <button key={n} onClick={() => setCount(n)} className={`px-3 py-1.5 rounded text-xs font-mono ${count === n ? "bg-primary text-primary-foreground" : "bg-surface2 border border-border text-muted-foreground"}`}>{n}</button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <button onClick={generate} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground font-mono text-sm hover:bg-primary/90 transition-colors">
-              <RefreshCw className="w-4 h-4" /> Regenerate
+      <div className="space-y-6">
+        {/* Policy Selector */}
+        <div className="flex flex-wrap gap-2">
+          {(Object.keys(PASSWORD_POLICIES) as PolicyKey[]).map(policy => (
+            <button
+              key={policy}
+              onClick={() => setSelectedPolicy(policy)}
+              className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                selectedPolicy === policy
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-surface border-border hover:bg-surface2"
+              }`}
+            >
+              {PASSWORD_POLICIES[policy].name}
             </button>
-            {count > 1 && (
-              <button onClick={exportCsv} className="px-3 py-2.5 rounded-lg bg-surface2 border border-border font-mono text-sm hover:border-primary/40 transition-colors" title="Export as CSV">
-                <Download className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-          <p className="text-[10px] font-mono text-muted-foreground text-center">Press Space to regenerate</p>
+          ))}
+        </div>
 
-          {/* Policy Checker */}
-          <div className="p-3 rounded-lg bg-surface border border-border">
-            <label className="text-xs font-mono text-muted-foreground mb-1 flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" /> Policy Checker
-            </label>
-            <textarea
-              value={policy}
-              onChange={e => setPolicy(e.target.value)}
-              placeholder="Paste your password policy, e.g. 'minimum 12 chars, uppercase, number, special character'"
-              className="w-full bg-surface2 border border-border rounded px-3 py-2 font-mono text-xs resize-none mt-1"
-              rows={3}
-              spellCheck={false}
-            />
-            {policyResult.length > 0 && (
-              <div className="mt-2 space-y-1">
-                {policyResult.map((r, i) => (
-                  <p key={i} className={`text-xs font-mono ${r.startsWith("✓") ? "text-accent" : "text-destructive"}`}>{r}</p>
+        {/* Password Input */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-foreground">
+            Password to Audit
+          </label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter password to validate..."
+            className="w-full px-4 py-3 border border-[hsl(var(--foreground)/0.1)] rounded-lg bg-[hsl(var(--card))] text-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-[hsl(var(--foreground)/0.2)] hover:border-[hsl(var(--foreground)/0.15)] placeholder:text-muted-foreground/50 caret-primary transition-[border-color,box-shadow] duration-200 selection:bg-primary/20"
+          />
+        </div>
+
+        {auditResult && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Current Policy Results */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold">{auditResult.policy} Policy Results</h3>
+              </div>
+
+              {/* Score */}
+              <div className="p-4 rounded-lg bg-surface border">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Compliance Score</span>
+                  <span className={`text-lg font-bold ${auditResult.score >= 80 ? 'text-green-600' : auditResult.score >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                    {auditResult.score}/100
+                  </span>
+                </div>
+                <div className="w-full bg-surface2 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all ${
+                      auditResult.score >= 80 ? 'bg-green-500' : auditResult.score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}
+                    style={{ width: `${auditResult.score}%` }}
+                  />
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-xs text-muted-foreground">Entropy: {entropy.toFixed(1)} bits</span>
+                  {auditResult.passed && <CheckCircle className="w-4 h-4 text-green-500" />}
+                </div>
+              </div>
+
+              {/* Violations */}
+              {auditResult.violations.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-muted-foreground">Violations</h4>
+                  {auditResult.violations.map((violation, idx) => (
+                    <div key={idx} className={`p-3 rounded-lg border ${getSeverityColor(violation.severity)}`}>
+                      <div className="flex items-start gap-2">
+                        {getSeverityIcon(violation.severity)}
+                        <span className="text-sm">{violation.message}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {auditResult.violations.length === 0 && (
+                <div className="p-3 rounded-lg border bg-green-50 border-green-200 text-green-600">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4" />
+                    <span className="text-sm font-medium">All requirements met!</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* All Policies Comparison */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">All Policies Comparison</h3>
+              <div className="space-y-3">
+                {allPoliciesResult.map(result => (
+                  <div key={result.policy} className="p-3 rounded-lg bg-surface border">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">{result.policy}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-bold ${result.score >= 80 ? 'text-accent' : result.score >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+                          {result.score}/100
+                        </span>
+                        {result.passed && <CheckCircle className="w-4 h-4 text-accent" />}
+                      </div>
+                    </div>
+                    <div className="w-full bg-surface2 rounded-full h-1.5">
+                      <div
+                        className={`h-1.5 rounded-full transition-all ${
+                          result.score >= 80 ? 'bg-accent' : result.score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${result.score}%` }}
+                      />
+                    </div>
+                  </div>
                 ))}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Output */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Strength */}
-          <div className="p-4 rounded-lg bg-surface border border-border">
-            <div className="flex justify-between text-xs font-mono mb-2">
-              <span className="text-muted-foreground">Entropy: {entropy} bits</span>
-              <span style={{ color: strength.color }}>{strength.label}</span>
-            </div>
-            <div className="h-2 rounded-full bg-surface2 overflow-hidden">
-              <div className="h-full rounded-full transition-all duration-300" style={{ width: `${strength.percent}%`, backgroundColor: strength.color }} />
-            </div>
-            <p className="text-xs font-mono text-muted-foreground mt-2">Crack time (10B guesses/sec): {crackTimeEstimate(entropy)}</p>
-          </div>
-
-          {/* Crack timeline */}
-          <div className="p-4 rounded-lg bg-surface border border-border">
-            <p className="text-xs font-mono text-muted-foreground mb-3">Time to crack at different attack speeds</p>
-            <div className="grid grid-cols-3 gap-3">
-              {crackTimeline.map(({ label, time }) => (
-                <div key={label} className="text-center">
-                  <p className="font-mono text-lg font-bold text-foreground">{time}</p>
-                  <p className="text-[10px] font-mono text-muted-foreground">{label}</p>
-                </div>
-              ))}
             </div>
           </div>
-
-          {/* Passwords */}
-          <div className="space-y-2">
-            {passwords.map((pw, i) => (
-              <div key={i} className="flex items-center gap-2 p-3 rounded-lg bg-surface border border-border group">
-                <code className="flex-1 font-mono text-sm break-all select-all">{pw}</code>
-                <button onClick={() => copyPw(i)} className="shrink-0 p-1.5 rounded hover:bg-muted transition-colors">
-                  {copied === i ? <Check className="w-4 h-4 text-accent" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-surface text-xs font-mono text-accent">
-            🔒 Generated locally in your browser. Never transmitted.
-          </div>
-        </div>
+        )}
       </div>
     </ToolLayout>
   );

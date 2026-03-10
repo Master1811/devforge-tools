@@ -25,11 +25,11 @@ export default function ToolCard({ name, description, path, icon: Icon, tag, ind
       <Link
         href={path}
         className={cn(
-          "group relative block p-5 rounded-xl border border-border bg-surface/80 backdrop-blur-sm",
+          "group relative block p-5 rounded-xl border border-[hsl(var(--foreground)/0.1)] bg-surface-1 backdrop-blur-[12px]",
           "transition-all duration-300 ease-out-expo",
-          "hover:border-primary/30 hover:shadow-[var(--shadow-glow)]",
+          "hover:border-primary/30 hover:bg-surface-2 hover:shadow-[var(--shadow-glow)]",
           "hover:-translate-y-0.5",
-          "active:translate-y-0 active:scale-[0.99]",
+          "active:translate-y-0 active:scale-[0.99] active:bg-surface-2",
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
         )}
       >

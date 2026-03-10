@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import JWTDecoderPage from "@/page-components/JWTDecoder";
 
 export const metadata: Metadata = {
@@ -15,7 +16,19 @@ export const metadata: Metadata = {
   },
 };
 
+function PageLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-pulse text-muted-foreground">Loading...</div>
+    </div>
+  );
+}
+
 export default function Page() {
-  return <JWTDecoderPage />;
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <JWTDecoderPage />
+    </Suspense>
+  );
 }
 

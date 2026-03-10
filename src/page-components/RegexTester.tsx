@@ -473,7 +473,7 @@ export default function RegexTesterPage() {
             <input
               value={pattern}
               onChange={e => setPattern(e.target.value)}
-              className={`w-full bg-surface border ${error ? "border-destructive" : "border-border"} rounded-lg pl-6 pr-4 py-3 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary`}
+              className={`w-full bg-[hsl(var(--card))] border ${error ? "border-destructive" : "border-[hsl(var(--foreground)/0.1)]"} rounded-lg pl-6 pr-4 py-3 font-mono text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-[hsl(var(--foreground)/0.2)] hover:border-[hsl(var(--foreground)/0.15)] caret-primary transition-[border-color,box-shadow] duration-200`}
               placeholder="Enter regex pattern"
               spellCheck={false}
             />
@@ -563,7 +563,7 @@ export default function RegexTesterPage() {
           value={testStr}
           onChange={e => setTestStr(e.target.value)}
           placeholder="Enter test string..."
-          className="w-full bg-surface border border-border rounded-lg p-4 font-mono text-sm min-h-[120px] focus:outline-none focus:ring-2 focus:ring-primary resize-y"
+          className="w-full bg-[hsl(var(--card))] border border-[hsl(var(--foreground)/0.1)] rounded-lg p-4 font-mono text-sm text-foreground min-h-[120px] focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-[hsl(var(--foreground)/0.2)] hover:border-[hsl(var(--foreground)/0.15)] resize-y placeholder:text-muted-foreground/50 caret-primary transition-[border-color,box-shadow] duration-200 selection:bg-primary/20"
           spellCheck={false}
         />
 

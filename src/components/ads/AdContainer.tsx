@@ -68,20 +68,20 @@ export default function AdContainer({ placement, className, show = true }: AdCon
   const shimmerClass = !visible ? "animate-pulse" : "";
 
   // Hover glow — ads get their own glow, independent of the grid
-  const hoverGlowClass = "transition-shadow duration-300 hover:shadow-[0_0_20px_-4px_hsl(var(--primary)/0.4)] hover:border-primary/40";
+  const hoverGlowClass = "transition-all duration-300 hover:shadow-[var(--shadow-glow-accent)] hover:border-accent/40";
 
   if (placement === "mobile-sticky") {
     return (
-      <div className={cn("fixed bottom-0 inset-x-0 z-50 flex lg:hidden justify-center p-2 bg-background/80 backdrop-blur-sm border-t border-border", className)}>
+      <div className={cn("fixed bottom-0 inset-x-0 z-50 flex lg:hidden justify-center p-2 bg-surface-0/80 backdrop-blur-[12px] border-t border-[hsl(var(--foreground)/0.1)]", className)}>
         <div
-          className={cn("relative flex items-center justify-center rounded-md border border-border bg-surface", hoverGlowClass)}
+          className={cn("relative flex items-center justify-center rounded-xl border border-[hsl(var(--foreground)/0.1)] bg-surface-1", hoverGlowClass)}
           style={{ width: c.desktopW, height: c.desktopH }}
           data-ad-slot={`devforge-${placement}`}
           data-ad-format="auto"
         >
           <button
             onClick={() => setDismissed(true)}
-            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-surface2 border border-border flex items-center justify-center hover:bg-muted transition-colors"
+            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-surface-2 border border-[hsl(var(--foreground)/0.1)] flex items-center justify-center hover:bg-surface-2/80 transition-colors"
             aria-label="Close ad"
           >
             <X className="w-3 h-3 text-muted-foreground" />
@@ -98,7 +98,7 @@ export default function AdContainer({ placement, className, show = true }: AdCon
       <div
         ref={ref}
         className={cn(
-          "mx-auto items-center justify-center rounded-lg border border-border bg-surface/80 backdrop-blur overflow-hidden",
+          "mx-auto items-center justify-center rounded-xl border border-[hsl(var(--foreground)/0.1)] bg-surface-1 backdrop-blur-[12px] overflow-hidden",
           hoverGlowClass,
           "flex animate-in fade-in duration-500",
           className
@@ -123,7 +123,7 @@ export default function AdContainer({ placement, className, show = true }: AdCon
     <div
       ref={ref}
       className={cn(
-        "mx-auto items-center justify-center rounded-lg border border-border bg-surface/80 backdrop-blur overflow-hidden",
+        "mx-auto items-center justify-center rounded-xl border border-[hsl(var(--foreground)/0.1)] bg-surface-1 backdrop-blur-[12px] overflow-hidden",
         hoverGlowClass,
         shimmerClass,
         visibilityClass,

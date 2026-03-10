@@ -3,11 +3,11 @@ import JsonToTypescriptPage from "@/page-components/JsonToTypescript";
 
 export const metadata: Metadata = {
   title: "JSON to TypeScript Converter",
-  description: "Generate TypeScript interfaces from JSON instantly. Supports nested objects, arrays, and optional fields. Free online tool.",
-  keywords: ["json to typescript", "json to ts", "typescript interface generator", "json to type"],
+  description: "Convert JSON data to TypeScript interfaces, types, Zod schemas, or Yup validation schemas. Supports nested objects, arrays, and automatic type inference. Free online tool.",
+  keywords: ["json to typescript", "typescript interface generator", "json schema", "type inference", "zod schema", "yup validation"],
   openGraph: {
     title: "JSON to TypeScript Converter | DevForge",
-    description: "Generate TypeScript interfaces from JSON instantly. Free online tool.",
+    description: "Convert JSON data to TypeScript interfaces, types, Zod schemas, or Yup validation schemas. Free online tool.",
     url: "https://devforge.tools/json-to-typescript",
   },
   alternates: {

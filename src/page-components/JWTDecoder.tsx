@@ -302,7 +302,7 @@ export default function JWTDecoderPage() {
                 value={secret}
                 onChange={e => setSecret(e.target.value)}
                 placeholder="Enter your secret key or paste PEM public key..."
-                className="w-full bg-surface border border-border rounded-lg p-4 font-mono text-sm min-h-[150px] focus:outline-none focus:ring-2 focus:ring-primary resize-y"
+                className="w-full bg-[hsl(var(--card))] border border-[hsl(var(--foreground)/0.1)] rounded-lg p-4 font-mono text-sm text-foreground min-h-[150px] focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-[hsl(var(--foreground)/0.2)] hover:border-[hsl(var(--foreground)/0.15)] resize-y placeholder:text-muted-foreground/50 caret-primary transition-[border-color,box-shadow] duration-200 selection:bg-primary/20"
                 spellCheck={false}
               />
             </div>
@@ -456,7 +456,7 @@ export default function JWTDecoderPage() {
               value={batchInput}
               onChange={e => setBatchInput(e.target.value)}
               placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwibmFtZSI6IkpvaG4ifQ.Signature1&#10;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwibmFtZSI6IkphbmUifQ.Signature2"
-              className="w-full bg-surface border border-border rounded-lg p-4 font-mono text-sm min-h-[150px] focus:outline-none focus:ring-2 focus:ring-primary resize-y"
+              className="w-full bg-[hsl(var(--card))] border border-[hsl(var(--foreground)/0.1)] rounded-lg p-4 font-mono text-sm text-foreground min-h-[150px] focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-[hsl(var(--foreground)/0.2)] hover:border-[hsl(var(--foreground)/0.15)] resize-y placeholder:text-muted-foreground/50 caret-primary transition-[border-color,box-shadow] duration-200 selection:bg-primary/20"
               spellCheck={false}
             />
           </div>
