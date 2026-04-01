@@ -5,22 +5,42 @@ import ToolLayout from "@/components/shared/ToolLayout";
 import CodePanel from "@/components/shared/CodePanel";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDebounce } from "@/hooks/useDebounce";
-import { jsonToBigQuerySchema, JsonToBigQueryOptions } from "@/lib/tools/jsonToBigQuery";
+import {
+  BigQueryConflictError,
+  JsonToBigQueryOptions,
+  analyzeJsonToBigQuerySchema,
+} from "@/lib/tools/jsonToBigQuery";
 
 export default function JsonToBigQueryPage() {
   const [input, setInput] = useLocalStorage("devforge-json-bq-input", "");
   const [strictNulls, setStrictNulls] = useState(false);
   const [includeDescriptions, setIncludeDescriptions] = useState(false);
+  const [conflictResolution, setConflictResolution] = useState<JsonToBigQueryOptions["conflictResolution"]>();
   const debounced = useDebounce(input, 200);
 
   let output = "";
   let error = "";
+  let conflictMessage = "";
+  let warnings: string[] = [];
   if (debounced.trim()) {
     try {
-      const opts: JsonToBigQueryOptions = { strictNulls, includeDescriptions };
-      output = jsonToBigQuerySchema(debounced, opts);
+      const opts: JsonToBigQueryOptions = { strictNulls, includeDescriptions, conflictResolution };
+      const analysis = analyzeJsonToBigQuerySchema(debounced, opts);
+      warnings = analysis.warnings;
+      if (analysis.conflicts.length > 0 && !conflictResolution) {
+        throw new BigQueryConflictError(analysis.conflicts);
+      }
+      output = JSON.stringify(analysis.schema, null, 2);
     } catch (e) {
-      error = "Invalid JSON: " + (e as Error).message;
+      if (e instanceof BigQueryConflictError) {
+        error = "Type conflict detected. Choose how to resolve before generating schema.";
+        const first = e.conflicts[0];
+        conflictMessage = first
+          ? `Field '${first.fieldPath}' has conflicting types (${first.existingKind} vs ${first.incomingKind}). Should we cast to STRING or keep as RECORD and ignore invalid entries?`
+          : "Type conflict detected. Choose a conflict-resolution strategy.";
+      } else {
+        error = "Invalid JSON: " + (e as Error).message;
+      }
     }
   }
 
@@ -100,6 +120,42 @@ export default function JsonToBigQueryPage() {
           Include field descriptions
         </label>
       </div>
+
+      {conflictMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4">
+          <div className="w-full max-w-xl rounded-2xl border border-border bg-surface p-5 shadow-[var(--shadow-lg)]">
+            <p className="text-sm font-semibold text-yellow-300 mb-2">Decision Required: Type Conflict</p>
+            <p className="text-sm text-muted-foreground mb-4">{conflictMessage}</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setConflictResolution("cast_to_string")}
+                className="px-3 py-1.5 rounded-md text-xs font-semibold border bg-primary text-primary-foreground border-primary"
+              >
+                Cast to STRING
+              </button>
+              <button
+                type="button"
+                onClick={() => setConflictResolution("keep_record_ignore_invalid")}
+                className="px-3 py-1.5 rounded-md text-xs font-semibold border bg-surface2 border-border hover:bg-surface"
+              >
+                Keep as RECORD and ignore invalid entries
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {warnings.length > 0 && (
+        <div className="mb-4 rounded-xl border border-blue-400/30 bg-blue-500/10 p-4">
+          <p className="text-xs font-semibold text-blue-300 mb-2">Schema Warnings</p>
+          <ul className="space-y-1 text-xs text-muted-foreground">
+            {warnings.map((w) => (
+              <li key={w}>• {w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <CodePanel

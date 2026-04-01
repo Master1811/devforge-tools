@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import SQLOptimizerPage from "@/page-components/SQLFormatter";
+import SQLOptimizerPage from "@/page-components/SQLOptimizer";
 
 export const metadata: Metadata = {
   title: "Snowflake / Databricks SQL Optimizer",

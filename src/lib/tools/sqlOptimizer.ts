@@ -10,6 +10,12 @@ export interface SQLOptimizationIssue {
 export interface SQLOptimizationResult {
   issues: SQLOptimizationIssue[];
   score: number; // 0-100, higher is better
+  engine: 'wasm-ast' | 'regex-fallback';
+  structuralSignals: {
+    partitionAware: boolean;
+    costOptimized: boolean;
+    sargable: boolean;
+  };
   summary: {
     errors: number;
     warnings: number;
@@ -18,6 +24,7 @@ export interface SQLOptimizationResult {
 }
 
 export type WarehouseType = 'snowflake' | 'databricks';
+type SQLDialect = 'snowflake' | 'databricks';
 
 const OPTIMIZATION_RULES = {
   fullTableScan: {
@@ -106,7 +113,29 @@ const WAREHOUSE_SPECIFIC_RULES = {
   ]
 };
 
-function analyzeSQL(sql: string, warehouse: WarehouseType): SQLOptimizationIssue[] {
+let sqlParserReady = false;
+let sqlParserLoadAttempted = false;
+let sqlParser: null | {
+  init: () => Promise<void>;
+  parse: (sql: string, dialect: SQLDialect) => unknown[];
+} = null;
+
+async function ensureParserLoaded(): Promise<boolean> {
+  if (sqlParserReady) return true;
+  if (sqlParserLoadAttempted) return false;
+  sqlParserLoadAttempted = true;
+  try {
+    const mod = await import('@guanmingchiu/sqlparser-ts');
+    sqlParser = mod as unknown as { init: () => Promise<void>; parse: (sql: string, dialect: SQLDialect) => unknown[] };
+    await sqlParser.init();
+    sqlParserReady = true;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function analyzeSQLRegex(sql: string, warehouse: WarehouseType): SQLOptimizationIssue[] {
   const issues: SQLOptimizationIssue[] = [];
   const lines = sql.split('\n');
 
@@ -179,9 +208,132 @@ function calculateComplexityScore(sql: string): number {
   return Math.min(score, 100);
 }
 
-export function optimizeSnowflakeDatabricksSQL(sql: string, warehouse: WarehouseType): SQLOptimizationResult {
+function collectCompoundIdentifiers(node: unknown, out: string[] = []): string[] {
+  if (!node || typeof node !== 'object') return out;
+  const obj = node as Record<string, unknown>;
+
+  const compound = obj.CompoundIdentifier;
+  if (Array.isArray(compound)) {
+    const pieces = compound
+      .map((p) => (p && typeof p === 'object' ? (p as Record<string, unknown>).value : undefined))
+      .filter((x): x is string => typeof x === 'string');
+    if (pieces.length >= 2) out.push(`${pieces[0]}.${pieces[pieces.length - 1]}`);
+  }
+
+  for (const v of Object.values(obj)) {
+    if (Array.isArray(v)) v.forEach((child) => collectCompoundIdentifiers(child, out));
+    else if (v && typeof v === 'object') collectCompoundIdentifiers(v, out);
+  }
+  return out;
+}
+
+function analyzeStructuralWithAst(ast: unknown[], sql: string): SQLOptimizationIssue[] {
+  const issues: SQLOptimizationIssue[] = [];
+  const text = sql.toUpperCase();
+
+  // 1) Unused columns in derived subquery.
+  if (text.includes('FROM (SELECT')) {
+    const refs = collectCompoundIdentifiers(ast);
+    const aliasUsage = new Map<string, Set<string>>();
+    for (const ref of refs) {
+      const [alias, col] = ref.split('.');
+      if (!alias || !col) continue;
+      const set = aliasUsage.get(alias) ?? new Set<string>();
+      set.add(col);
+      aliasUsage.set(alias, set);
+    }
+
+    const astString = JSON.stringify(ast);
+    const derivedAliasMatch = astString.match(/"Derived".*?"alias".*?"value":"(\w+)"/);
+    const derivedAlias = derivedAliasMatch?.[1];
+    if (derivedAlias) {
+      const innerProjectionMatches = [...astString.matchAll(/"Identifier":\{"value":"(\w+)"/g)].map((m) => m[1]);
+      const used = aliasUsage.get(derivedAlias) ?? new Set<string>();
+      const unused = innerProjectionMatches.filter((c) => !used.has(c)).slice(0, 4);
+      if (unused.length > 0) {
+        issues.push({
+          type: 'info',
+          category: 'Structural Analysis',
+          message: `Derived subquery projects potentially unused columns: ${unused.join(', ')}`,
+          suggestion: 'Remove unused projected columns from subqueries to reduce scan and shuffle cost.',
+        });
+      }
+    }
+  }
+
+  // 2) Join logic mismatch heuristic by key naming semantics.
+  const joinPairs = [...sql.matchAll(/\bON\s+([a-zA-Z_][\w.]*)\s*=\s*([a-zA-Z_][\w.]*)/gi)];
+  for (const pair of joinPairs) {
+    const left = pair[1].toLowerCase();
+    const right = pair[2].toLowerCase();
+    const numericHint = /(id|_id|count|num|qty|amount)$/;
+    const temporalHint = /(date|time|timestamp|_at)$/;
+    const leftNumeric = numericHint.test(left);
+    const rightNumeric = numericHint.test(right);
+    const leftTemporal = temporalHint.test(left);
+    const rightTemporal = temporalHint.test(right);
+    if (leftNumeric !== rightNumeric || leftTemporal !== rightTemporal) {
+      issues.push({
+        type: 'warning',
+        category: 'Structural Analysis',
+        message: `Join predicate may compare semantically mismatched keys: ${pair[1]} = ${pair[2]}`,
+        suggestion: 'Validate key data types and semantics in warehouse catalog before executing large joins.',
+      });
+    }
+  }
+
+  // 3) Predicate pushdown check: derived table with outer WHERE.
+  const hasDerived = /\bFROM\s*\(\s*SELECT\b/i.test(sql);
+  const hasOuterWhere = /\)\s*\w+\s+WHERE\b/i.test(sql);
+  const hasInnerWhere = /\bFROM\s*\(\s*SELECT[\s\S]*?\bWHERE\b[\s\S]*?\)\s*\w+/i.test(sql);
+  if (hasDerived && hasOuterWhere && !hasInnerWhere) {
+    issues.push({
+      type: 'warning',
+      category: 'Structural Analysis',
+      message: 'Filter appears only on outer query; predicate pushdown opportunity detected.',
+      suggestion: 'Move selective filters into subqueries/base-table scans to reduce intermediate data volume.',
+    });
+  }
+
+  return issues;
+}
+
+function computeSignals(issues: SQLOptimizationIssue[], score: number) {
+  return {
+    partitionAware: !issues.some((i) => /partition pruning/i.test(i.message)),
+    costOptimized: score >= 80 && !issues.some((i) => i.type === 'warning'),
+    sargable: !issues.some((i) => /leading wildcard|pushdown/i.test(i.message)),
+  };
+}
+
+export async function optimizeSnowflakeDatabricksSQL(sql: string, warehouse: WarehouseType): Promise<SQLOptimizationResult> {
   try {
-    const issues = analyzeSQL(sql, warehouse);
+    const baseIssues = analyzeSQLRegex(sql, warehouse);
+    const wasmLoaded = await ensureParserLoaded();
+    const structuralIssues: SQLOptimizationIssue[] = [];
+
+    if (wasmLoaded && sqlParser) {
+      try {
+        const ast = sqlParser.parse(sql, warehouse);
+        structuralIssues.push(...analyzeStructuralWithAst(ast, sql));
+      } catch (e) {
+        structuralIssues.push({
+          type: 'info',
+          category: 'Structural Analysis',
+          message: 'WASM AST parser failed for this query shape; regex analysis used as fallback.',
+          suggestion: 'Retry with valid SQL syntax or simpler statement boundaries.',
+        });
+      }
+    } else {
+      structuralIssues.push({
+        type: 'info',
+        category: 'Structural Analysis',
+        message: 'WASM AST parser unavailable; regex analysis fallback active.',
+        suggestion: 'Refresh and retry to reinitialize AST engine in-browser.',
+      });
+    }
+
+    const issues = [...baseIssues, ...structuralIssues];
 
     const summary = {
       errors: issues.filter(i => i.type === 'error').length,
@@ -195,10 +347,13 @@ export function optimizeSnowflakeDatabricksSQL(sql: string, warehouse: Warehouse
     score -= summary.warnings * 5;
     score -= summary.infos * 1;
     score = Math.max(0, score);
+    const structuralSignals = computeSignals(issues, score);
 
     return {
       issues,
       score,
+      engine: wasmLoaded ? 'wasm-ast' : 'regex-fallback',
+      structuralSignals,
       summary
     };
   } catch (e) {
@@ -210,6 +365,12 @@ export function optimizeSnowflakeDatabricksSQL(sql: string, warehouse: Warehouse
         suggestion: 'Check SQL syntax and try again'
       }],
       score: 0,
+      engine: 'regex-fallback',
+      structuralSignals: {
+        partitionAware: false,
+        costOptimized: false,
+        sargable: false,
+      },
       summary: { errors: 1, warnings: 0, infos: 0 }
     };
   }
