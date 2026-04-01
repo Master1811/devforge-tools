@@ -7,23 +7,11 @@ import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button
 import ToolCard from "@/components/shared/ToolCard";
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
-import { KeyRound, Braces, Database, Clock, Regex, Binary, Terminal, FileJson, FileText, Lock, Zap, Globe, Shield } from "lucide-react";
-
-const tools = [
-  { name: "JWT Decoder", description: "Decode and inspect JSON Web Tokens instantly", path: "/jwt-decoder", icon: KeyRound, tag: "auth" },
-  { name: "JSON to TypeScript", description: "Generate TypeScript interfaces from JSON", path: "/json-to-typescript", icon: Braces, tag: "types" },
-  { name: "SQL Formatter", description: "Beautify and format SQL queries", path: "/sql-formatter", icon: Database, tag: "database" },
-  { name: "Cron Visualizer", description: "Human-readable cron expressions", path: "/cron-visualizer", icon: Clock, tag: "scheduling" },
-  { name: "RegEx Tester", description: "Test regular expressions in real-time", path: "/regex-tester", icon: Regex, tag: "patterns" },
-  { name: "Base64 Encoder", description: "Encode and decode Base64 strings and files", path: "/base64-encoder", icon: Binary, tag: "encoding" },
-  { name: "cURL Converter", description: "Convert curl commands to any language", path: "/curl-converter", icon: Terminal, tag: "api" },
-  { name: "YAML ↔ JSON", description: "Convert between YAML and JSON formats", path: "/yaml-json-converter", icon: FileJson, tag: "config" },
-  { name: "Markdown Previewer", description: "Live markdown editor with instant preview", path: "/markdown-previewer", icon: FileText, tag: "docs" },
-  { name: "Password Generator", description: "Cryptographically secure password generation", path: "/password-generator", icon: Lock, tag: "security" },
-];
+import { Zap, Globe, Shield } from "lucide-react";
+import { TOOLS } from "@/lib/tools/registry";
 
 const stats = [
-  { value: "10", label: "Tools" },
+  { value: String(TOOLS.length), label: "Tools" },
   { value: "100%", label: "Free" },
   { value: "No", label: "Signup" },
   { value: "$0", label: "Infrastructure" },
@@ -173,7 +161,7 @@ export default function HomePage() {
           </p>
         </motion.div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {tools.map((tool, i) => (
+          {TOOLS.map((tool, i) => (
             <ToolCard key={tool.path} {...tool} index={i} />
           ))}
         </div>

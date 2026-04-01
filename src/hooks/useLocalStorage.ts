@@ -5,7 +5,6 @@ import { useState, useEffect, useCallback } from "react";
 export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((prev: T) => T)) => void] {
   // Initialize with initialValue on server, then sync with localStorage on client
   const [storedValue, setStoredValue] = useState<T>(initialValue);
-  const [isHydrated, setIsHydrated] = useState(false);
 
   // Hydrate from localStorage after mount
   useEffect(() => {
@@ -17,7 +16,6 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
     } catch {
       // localStorage not available or parse error
     }
-    setIsHydrated(true);
   }, [key]);
 
   const setValue = useCallback((value: T | ((prev: T) => T)) => {

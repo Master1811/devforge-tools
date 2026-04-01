@@ -3,7 +3,7 @@
 
 let worker: Worker | null = null;
 let idCounter = 0;
-const pending = new Map<string, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
+const pending = new Map<string, { resolve: (v: unknown) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout> }>();
 
 function getWorker(): Worker {
   if (!worker) {
@@ -12,6 +12,7 @@ function getWorker(): Worker {
       const { id, result, error } = e.data;
       const p = pending.get(id);
       if (p) {
+        clearTimeout(p.timer);
         pending.delete(id);
         if (error) p.reject(new Error(error));
         else p.resolve(result);
@@ -27,15 +28,14 @@ function getWorker(): Worker {
 export function runInWorker<T>(task: { type: string; payload: unknown }): Promise<T> {
   return new Promise((resolve, reject) => {
     const id = String(++idCounter);
-    pending.set(id, { resolve: resolve as (v: unknown) => void, reject });
-    getWorker().postMessage({ id, task });
-    // Timeout after 30s
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       if (pending.has(id)) {
         pending.delete(id);
         reject(new Error("Worker timeout"));
       }
     }, 30000);
+    pending.set(id, { resolve: resolve as (v: unknown) => void, reject, timer });
+    getWorker().postMessage({ id, task });
   });
 }
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import ToolLayout from "@/components/shared/ToolLayout";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDebounce } from "@/hooks/useDebounce";
-import { optimizeSnowflakeDatabricksSQL, WarehouseType } from "@/lib/tools/sqlOptimizer";
+import { optimizeSnowflakeDatabricksSQL, type SQLOptimizationResult, type WarehouseType } from "@/lib/tools/sqlOptimizer";
 import { AlertTriangle, CheckCircle, Info, Database, Zap, TrendingUp } from "lucide-react";
 
 const WAREHOUSES: { id: WarehouseType; label: string; color: string }[] = [
@@ -17,7 +17,7 @@ export default function SQLOptimizerPage() {
   const [warehouse, setWarehouse] = useState<WarehouseType>("snowflake");
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
   const debounced = useDebounce(input, 300);
-  const [optimizationResult, setOptimizationResult] = useState<Awaited<ReturnType<typeof optimizeSnowflakeDatabricksSQL>> | null>(null);
+  const [optimizationResult, setOptimizationResult] = useState<SQLOptimizationResult | null>(null);
 
   useEffect(() => {
     let cancelled = false;

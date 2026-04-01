@@ -23,13 +23,30 @@ const nextConfig = {
 
   // Webpack configuration
   webpack: (config, { isServer }) => {
-    // Handle Three.js
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
         path: false,
       };
+
+      // @guanmingchiu/sqlparser-ts uses node:fs/promises — it's a Node-only WASM
+      // loader that can't run in the browser. Mark it external so webpack doesn't
+      // try to bundle it; sqlOptimizer's try/catch fallback handles the failure.
+      const existingExternals = Array.isArray(config.externals)
+        ? config.externals
+        : config.externals
+        ? [config.externals]
+        : [];
+      config.externals = [
+        ...existingExternals,
+        ({ request }, callback) => {
+          if (request === '@guanmingchiu/sqlparser-ts') {
+            return callback(null, 'commonjs ' + request);
+          }
+          callback();
+        },
+      ];
     }
     return config;
   },

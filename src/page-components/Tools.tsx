@@ -6,114 +6,24 @@ import { motion } from "framer-motion";
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
 import ToolCard from "@/components/shared/ToolCard";
-import { KeyRound, Braces, Database, Clock, Regex, Binary, Terminal, FileJson, FileText, Lock, Zap, Globe, Shield, Search, Filter, Code } from "lucide-react";
-
-const allTools = [
-  {
-    name: "JWT Decoder",
-    description: "Decode and inspect JSON Web Tokens instantly. View header, payload, and expiration — no signup required.",
-    path: "/jwt-decoder",
-    icon: KeyRound,
-    tags: ["auth", "security", "debugging"],
-    keywords: ["jwt", "token", "decode", "inspect", "header", "payload", "signature", "expiration"]
-  },
-  {
-    name: "JSON to BigQuery Schema",
-    description: "Generate BigQuery table schemas from JSON data. Handles nested objects, arrays, and automatic type inference.",
-    path: "/json-to-bigquery-schema",
-    icon: Braces,
-    tags: ["bigquery", "json", "schema", "database"],
-    keywords: ["json", "bigquery", "schema", "bq", "table", "type", "inference", "nested"]
-  },
-  {
-    name: "JSON to TypeScript",
-    description: "Convert JSON data to TypeScript interfaces, types, Zod schemas, or Yup validation schemas with automatic type inference.",
-    path: "/json-to-typescript",
-    icon: Code,
-    tags: ["typescript", "json", "schema", "types"],
-    keywords: ["json", "typescript", "interface", "type", "zod", "yup", "schema", "inference"]
-  },
-  {
-    name: "SQL Optimizer",
-    description: "Analyze SQL queries for performance issues in Snowflake and Databricks. Detect optimization opportunities.",
-    path: "/sql-optimizer",
-    icon: Database,
-    tags: ["database", "sql", "optimization", "performance"],
-    keywords: ["sql", "optimizer", "snowflake", "databricks", "performance", "query", "analysis"]
-  },
-  {
-    name: "Cron Visualizer",
-    description: "Human-readable cron expressions. See when your scheduled tasks will run next.",
-    path: "/cron-visualizer",
-    icon: Clock,
-    tags: ["scheduling", "cron", "automation", "time"],
-    keywords: ["cron", "scheduler", "expression", "schedule", "automation", "timing"]
-  },
-  {
-    name: "RegEx Tester",
-    description: "Test regular expressions in real-time. See matches highlighted with capture groups and performance profiling.",
-    path: "/regex-tester",
-    icon: Regex,
-    tags: ["regex", "patterns", "validation", "text"],
-    keywords: ["regex", "regular expression", "pattern", "test", "match", "capture", "validation"]
-  },
-  {
-    name: "Base64 Encoder",
-    description: "Encode and decode Base64 strings and files. Detect content types automatically.",
-    path: "/base64-encoder",
-    icon: Binary,
-    tags: ["encoding", "base64", "files", "data"],
-    keywords: ["base64", "encode", "decode", "binary", "file", "data", "encoding"]
-  },
-  {
-    name: "cURL Converter",
-    description: "Convert curl commands to any language. Generate fetch, axios, requests, and more.",
-    path: "/curl-converter",
-    icon: Terminal,
-    tags: ["api", "curl", "http", "conversion"],
-    keywords: ["curl", "converter", "api", "http", "fetch", "axios", "requests", "python"]
-  },
-  {
-    name: "YAML ↔ JSON",
-    description: "Convert between YAML and JSON formats. Bidirectional conversion with validation.",
-    path: "/yaml-json-converter",
-    icon: FileJson,
-    tags: ["yaml", "json", "config", "conversion"],
-    keywords: ["yaml", "json", "converter", "config", "configuration", "format"]
-  },
-  {
-    name: "Markdown Previewer",
-    description: "Live markdown editor with instant preview. Write documentation with real-time rendering.",
-    path: "/markdown-previewer",
-    icon: FileText,
-    tags: ["markdown", "docs", "writing", "preview"],
-    keywords: ["markdown", "preview", "editor", "documentation", "writing", "render"]
-  },
-  {
-    name: "Password Policy Auditor",
-    description: "Validate passwords against enterprise security policies including NIST, OWASP, and corporate standards.",
-    path: "/password-policy-auditor",
-    icon: Shield,
-    tags: ["security", "password", "policy", "enterprise"],
-    keywords: ["password", "policy", "auditor", "nist", "owasp", "corporate", "security", "compliance"]
-  },
-];
+import { Zap, Globe, Shield, Search } from "lucide-react";
+import { TOOLS } from "@/lib/tools/registry";
 
 const categories = [
-  { id: "all", label: "All Tools", count: allTools.length },
-  { id: "auth", label: "Authentication", count: allTools.filter(t => t.tags.includes("auth")).length },
-  { id: "api", label: "API Tools", count: allTools.filter(t => t.tags.includes("api")).length },
-  { id: "database", label: "Database", count: allTools.filter(t => t.tags.includes("database")).length },
-  { id: "text", label: "Text Processing", count: allTools.filter(t => t.tags.includes("text")).length },
-  { id: "security", label: "Security", count: allTools.filter(t => t.tags.includes("security")).length },
-  { id: "conversion", label: "Converters", count: allTools.filter(t => t.tags.includes("conversion")).length },
+  { id: "all", label: "All Tools", count: TOOLS.length },
+  { id: "auth", label: "Authentication", count: TOOLS.filter(t => t.tags.includes("auth")).length },
+  { id: "api", label: "API Tools", count: TOOLS.filter(t => t.tags.includes("api")).length },
+  { id: "database", label: "Database", count: TOOLS.filter(t => t.tags.includes("database")).length },
+  { id: "text", label: "Text Processing", count: TOOLS.filter(t => t.tags.includes("text")).length },
+  { id: "security", label: "Security", count: TOOLS.filter(t => t.tags.includes("security")).length },
+  { id: "conversion", label: "Converters", count: TOOLS.filter(t => t.tags.includes("conversion")).length },
 ];
 
 export default function ToolsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
-  const filteredTools = allTools.filter(tool => {
+  const filteredTools = TOOLS.filter(tool => {
     const matchesSearch = searchQuery === "" ||
       tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tool.description.toLowerCase().includes(searchQuery.toLowerCase()) ||

@@ -138,12 +138,13 @@ async function ensureParserLoaded(): Promise<boolean> {
 function analyzeSQLRegex(sql: string, warehouse: WarehouseType): SQLOptimizationIssue[] {
   const issues: SQLOptimizationIssue[] = [];
   const lines = sql.split('\n');
+  const offsets = buildLineOffsets(sql);
 
   // Apply general rules
-  for (const [ruleName, rule] of Object.entries(OPTIMIZATION_RULES)) {
+  for (const [, rule] of Object.entries(OPTIMIZATION_RULES)) {
     const matches = sql.matchAll(rule.pattern);
     for (const match of matches) {
-      const lineNumber = getLineNumber(sql, match.index!);
+      const lineNumber = getLineNumber(offsets, match.index!);
       issues.push({
         type: rule.severity,
         category: rule.category,
@@ -159,7 +160,7 @@ function analyzeSQLRegex(sql: string, warehouse: WarehouseType): SQLOptimization
   for (const rule of WAREHOUSE_SPECIFIC_RULES[warehouse]) {
     const matches = sql.matchAll(rule.pattern);
     for (const match of matches) {
-      const lineNumber = getLineNumber(sql, match.index!);
+      const lineNumber = getLineNumber(offsets, match.index!);
       issues.push({
         type: rule.severity,
         category: rule.category,
@@ -185,8 +186,22 @@ function analyzeSQLRegex(sql: string, warehouse: WarehouseType): SQLOptimization
   return issues;
 }
 
-function getLineNumber(sql: string, index: number): number {
-  return sql.substring(0, index).split('\n').length;
+function buildLineOffsets(sql: string): number[] {
+  const offsets = [0];
+  for (let i = 0; i < sql.length; i++) {
+    if (sql[i] === '\n') offsets.push(i + 1);
+  }
+  return offsets;
+}
+
+function getLineNumber(offsets: number[], index: number): number {
+  let lo = 0, hi = offsets.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (offsets[mid] <= index) lo = mid;
+    else hi = mid - 1;
+  }
+  return lo + 1;
 }
 
 function calculateComplexityScore(sql: string): number {
@@ -247,7 +262,7 @@ function analyzeStructuralWithAst(ast: unknown[], sql: string): SQLOptimizationI
     const derivedAliasMatch = astString.match(/"Derived".*?"alias".*?"value":"(\w+)"/);
     const derivedAlias = derivedAliasMatch?.[1];
     if (derivedAlias) {
-      const innerProjectionMatches = [...astString.matchAll(/"Identifier":\{"value":"(\w+)"/g)].map((m) => m[1]);
+      const innerProjectionMatches = [...astString.matchAll(/"Identifier":\{"value":"(\w+)"/g)].map((m: RegExpMatchArray) => m[1]);
       const used = aliasUsage.get(derivedAlias) ?? new Set<string>();
       const unused = innerProjectionMatches.filter((c) => !used.has(c)).slice(0, 4);
       if (unused.length > 0) {
