@@ -18,12 +18,12 @@ function applyTheme(resolved: "dark" | "light") {
 }
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== "undefined") {
-      return (localStorage.getItem("theme") as Theme) || "dark";
-    }
-    return "dark";
-  });
+  const [theme, setTheme] = useState<Theme>("dark");
+
+  useEffect(() => {
+    const stored = localStorage.getItem("theme") as Theme | null;
+    if (stored) setTheme(stored);
+  }, []);
 
   useEffect(() => {
     const resolved = theme === "system" ? getSystemTheme() : theme;

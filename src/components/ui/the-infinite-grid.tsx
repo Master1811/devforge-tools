@@ -61,7 +61,6 @@ export const InfiniteGrid = ({
   });
 
   const maskImage = useMotionTemplate`radial-gradient(350px circle at ${mouseX}px ${mouseY}px, black, transparent)`;
-  const glowGradient = useMotionTemplate`radial-gradient(200px circle at ${mouseX}px ${mouseY}px, hsl(var(--primary) / 0.35), transparent)`;
 
   const gridLayers = (fromColor: string) => (
     <>
@@ -69,9 +68,6 @@ export const InfiniteGrid = ({
       <motion.div className="absolute inset-0" style={{ opacity: pulseOpacity }}>
         <GridPattern offsetX={gridOffsetX} offsetY={gridOffsetY} patternId={`base-${patternId}`} />
       </motion.div>
-
-      {/* Mouse glow aura */}
-      <motion.div className="absolute inset-0 pointer-events-none" style={{ background: glowGradient }} />
 
       {/* Mouse-reveal grid with glow lines */}
       <motion.div className="absolute inset-0 opacity-30" style={{ maskImage, WebkitMaskImage: maskImage }}>
