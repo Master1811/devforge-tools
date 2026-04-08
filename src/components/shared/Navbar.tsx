@@ -6,7 +6,8 @@ import { useState, useEffect, useRef } from "react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence, useSpring } from "framer-motion";
+import { motion, AnimatePresence, useSpring, useReducedMotion } from "framer-motion";
+import { motionEase } from "@/lib/motion";
 
 const toolNames: Record<string, string> = {
   "/jwt-decoder": "JWT Decoder",
@@ -53,6 +54,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const reducedMotion = useReducedMotion();
   const currentTool = toolNames[pathname];
 
   /* mount entrance */
@@ -77,7 +79,7 @@ export default function Navbar() {
     <motion.nav
       initial={{ y: -56, opacity: 0 }}
       animate={mounted ? { y: 0, opacity: 1 } : {}}
-      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+      transition={{ duration: reducedMotion ? 0.15 : 0.7, ease: motionEase, delay: reducedMotion ? 0 : 0.1 }}
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-[background,border-color,box-shadow] duration-500 ease-out",
         scrolled
@@ -94,7 +96,7 @@ export default function Navbar() {
         style={{ width: "100%" }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+      <div className="page-container h-14 flex items-center justify-between">
         {/* Wordmark */}
         <MagneticEl>
           <Link
@@ -141,6 +143,7 @@ export default function Navbar() {
           <MagneticEl>
             <motion.button
               onClick={openPalette}
+              aria-label="Open search command palette"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.96 }}
               className={cn(
@@ -149,7 +152,7 @@ export default function Navbar() {
                 "hover:text-foreground hover:border-muted-foreground/30 hover:bg-surface/70",
                 "active:scale-[0.97]",
                 "transition-[background,border-color,color] duration-200 ease-out text-xs font-mono",
-                "group"
+                "group focus-visible:focus-ring"
               )}
             >
               <motion.span

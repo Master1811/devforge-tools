@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
+import Reveal from "@/components/shared/Reveal";
 
 const tools = [
   { name: "JWT Decoder", path: "/jwt-decoder" },
@@ -14,8 +15,6 @@ const tools = [
   { name: "Password Generator", path: "/password-generator" },
 ];
 
-const ease = [0.16, 1, 0.3, 1] as const;
-
 export default function Footer() {
   return (
     <footer className="border-t border-border bg-surface/50 backdrop-blur-sm py-12 mt-20 relative overflow-hidden">
@@ -23,17 +22,11 @@ export default function Footer() {
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-32 
                       bg-primary/4 blur-[80px] rounded-full pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="page-container relative">
         {/* Tool links — staggered reveal */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-x-3 gap-y-1.5 mb-10">
           {tools.map((t, i) => (
-            <motion.div
-              key={t.path}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-20px" }}
-              transition={{ delay: i * 0.04, duration: 0.45, ease }}
-            >
+            <Reveal key={t.path} delay={i * 0.035} y={10}>
               <Link
                 href={t.path}
                 className="group relative text-[13px] text-muted-foreground hover:text-foreground
@@ -53,7 +46,7 @@ export default function Footer() {
                   →
                 </motion.span>
               </Link>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
 

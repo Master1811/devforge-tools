@@ -27,14 +27,15 @@ export default function CodePanel({ value, onChange, readOnly = false, label, pl
 
   return (
     <div className={cn(
-      "rounded-xl overflow-hidden",
+      "rounded-2xl overflow-hidden",
       // Stable dark surface background - no grid patterns, no backdrop-blur that might cause artifacts
       "bg-[hsl(var(--card))] border border-[hsl(var(--foreground)/0.1)]",
       // Subtle shadow for elevation
       "shadow-[var(--shadow-xs)]",
       // Focus-within state for the container
       "transition-[border-color,box-shadow] duration-200 ease-out",
-      "focus-within:shadow-[var(--shadow-sm)] focus-within:border-[hsl(var(--foreground)/0.15)]"
+      "focus-within:shadow-[var(--shadow-sm)] focus-within:border-[hsl(var(--foreground)/0.15)]",
+      "interactive-card"
     )}>
       {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-[hsl(var(--foreground)/0.08)] bg-[hsl(var(--foreground)/0.03)]">
@@ -46,6 +47,7 @@ export default function CodePanel({ value, onChange, readOnly = false, label, pl
           {!readOnly && value && (
             <button
               onClick={() => onChange?.("")}
+              aria-label={`Clear ${label}`}
               className={cn(
                 "p-1.5 rounded-md transition-colors duration-150",
                 "text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10",
@@ -59,6 +61,7 @@ export default function CodePanel({ value, onChange, readOnly = false, label, pl
           {value && (
             <button
               onClick={handleCopy}
+              aria-label={`Copy ${label}`}
               className={cn(
                 "p-1.5 rounded-md transition-colors duration-150",
                 "text-muted-foreground/50 hover:text-foreground hover:bg-[hsl(var(--foreground)/0.08)]",
@@ -92,7 +95,8 @@ export default function CodePanel({ value, onChange, readOnly = false, label, pl
           // Good line height for code
           "leading-relaxed",
           // Selection and caret
-          "selection:bg-primary/20 caret-primary"
+          "selection:bg-primary/20 caret-primary",
+          "focus-visible:focus-ring"
         )}
         style={{ minHeight }}
         spellCheck={false}

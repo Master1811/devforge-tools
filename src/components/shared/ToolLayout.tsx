@@ -9,6 +9,7 @@ import Navbar from "./Navbar";
 import { Shield } from "lucide-react";
 import { useShell } from "@/components/Shell";
 import { cn } from "@/lib/utils";
+import Reveal from "@/components/shared/Reveal";
 
 interface FAQ { q: string; a: string; }
 interface RelatedTool { name: string; path: string; description: string; }
@@ -70,7 +71,7 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <main className="pt-20 pb-8 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="page-container">
           {/* Leaderboard ad */}
           <div className="mb-4 relative z-20">
             <AdContainer placement="leaderboard" />
@@ -122,7 +123,7 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
             transition={{ delay: 0.08, duration: 0.5, ease }}
             className="mt-6 mb-4"
           >
-            <div className="rounded-2xl border border-border bg-surface/30 backdrop-blur-sm p-1">
+            <div className="rounded-2xl surface-panel p-1">
               <div className="flex gap-6">
                 <div className="w-full lg:w-[calc(100%-320px)] min-w-0">
                   {children}
@@ -156,19 +157,24 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
 
           {/* SEO Content */}
           <div className="max-w-4xl space-y-12 mt-14">
-            <section>
+            <Reveal>
+              <section>
               <h2 className="heading-display text-2xl mb-5">How to Use {title}</h2>
               <ol className="list-decimal list-inside space-y-2.5 text-muted-foreground text-[15px] leading-relaxed">
                 {howToUse.map((step, i) => <li key={i}>{step}</li>)}
               </ol>
-            </section>
+              </section>
+            </Reveal>
 
-            <section>
+            <Reveal delay={0.05}>
+              <section>
               <h2 className="heading-display text-2xl mb-5">{whatIs.title}</h2>
               <p className="text-muted-foreground text-[15px] leading-relaxed">{whatIs.content}</p>
-            </section>
+              </section>
+            </Reveal>
 
-            <section>
+            <Reveal delay={0.08}>
+              <section>
               <h2 className="heading-display text-2xl mb-5">Frequently Asked Questions</h2>
               <div className="space-y-3">
                 {faqs.map((faq, i) => (
@@ -188,9 +194,11 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
                   </details>
                 ))}
               </div>
-            </section>
+              </section>
+            </Reveal>
 
-            <section>
+            <Reveal delay={0.12}>
+              <section>
               <h2 className="heading-display text-2xl mb-5">Related Tools</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {relatedTools.map(t => (
@@ -209,7 +217,8 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
                   </Link>
                 ))}
               </div>
-            </section>
+              </section>
+            </Reveal>
           </div>
 
           {/* Bottom banner ad */}

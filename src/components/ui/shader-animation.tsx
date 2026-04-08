@@ -15,6 +15,7 @@ export function ShaderAnimation() {
 
   useEffect(() => {
     if (!containerRef.current) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const container = containerRef.current;
     const vertexShader = `void main() { gl_Position = vec4(position, 1.0); }`;
     const fragmentShader = `
@@ -46,8 +47,12 @@ export function ShaderAnimation() {
     const material = new THREE.ShaderMaterial({ uniforms, vertexShader, fragmentShader });
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: "high-performance",
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.6));
     container.appendChild(renderer.domElement);
     const onResize = () => {
       renderer.setSize(container.clientWidth, container.clientHeight);

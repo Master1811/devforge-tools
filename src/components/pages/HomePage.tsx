@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import ToolCard from "@/components/shared/ToolCard";
@@ -9,6 +9,9 @@ import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
 import { Zap, Globe, Shield } from "lucide-react";
 import { TOOLS } from "@/lib/tools/registry";
+import ParallaxLayer from "@/components/shared/ParallaxLayer";
+import Reveal from "@/components/shared/Reveal";
+import { motionEase } from "@/lib/motion";
 
 /* ─── constants ─── */
 const stats = [
@@ -23,8 +26,6 @@ const features = [
   { icon: Globe, title: "Runs in Your Browser", description: "All processing happens locally. Your data never leaves your machine." },
   { icon: Zap, title: "Built for Speed", description: "Zero server calls. Sub-millisecond processing. No loading spinners." },
 ];
-
-const ease = [0.16, 1, 0.3, 1] as const;
 
 /* ─── Loader ─── */
 function SiteLoader({ onDone }: { onDone: () => void }) {
@@ -116,20 +117,6 @@ function Magnetic({ children }: { children: React.ReactNode }) {
     >
       {children}
     </motion.div>
-  );
-}
-
-/* ─── Parallax section wrapper ─── */
-function ParallaxSection({ children, offset = 60 }: { children: React.ReactNode; offset?: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], [offset, -offset]);
-  const smoothY = useSpring(y, { stiffness: 80, damping: 20 });
-
-  return (
-    <div ref={ref} className="relative">
-      <motion.div style={{ y: smoothY }}>{children}</motion.div>
-    </div>
   );
 }
 
@@ -257,11 +244,13 @@ function FeatureCard({ icon: Icon, title, description, index }: { icon: typeof S
 export default function HomePage() {
   const [loaded, setLoaded] = useState(false);
   const [shimmerReady, setShimmerReady] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroY = useTransform(heroScroll, [0, 1], ["0%", "28%"]);
-  const heroOpacity = useTransform(heroScroll, [0, 0.6], [1, 0]);
+  const heroY = useTransform(heroScroll, [0, 1], reducedMotion ? ["0%", "0%"] : ["0%", "28%"]);
+  const heroOpacity = useTransform(heroScroll, [0, 0.6], reducedMotion ? [1, 1] : [1, 0]);
+  const heroGridY = useTransform(heroScroll, [0, 1], reducedMotion ? ["0%", "0%"] : ["0%", "14%"]);
 
   const scrollToTools = () => {
     document.getElementById("tools")?.scrollIntoView({ behavior: "smooth" });
@@ -289,7 +278,7 @@ export default function HomePage() {
         {/* Floating grid lines (parallax decorative) */}
         <motion.div
           className="absolute inset-0 pointer-events-none opacity-[0.035]"
-          style={{ y: useTransform(heroScroll, [0, 1], ["0%", "14%"]) }}
+          style={{ y: heroGridY }}
         >
           <svg width="100%" height="100%">
             <defs>
@@ -370,17 +359,17 @@ export default function HomePage() {
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={loaded ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.55, duration: 0.6, ease }}
+            transition={{ delay: 0.55, duration: 0.6, ease: motionEase }}
             className="text-base sm:text-lg text-muted-foreground mb-8 font-mono max-w-xl mx-auto leading-relaxed"
           >
-            10 tools. No signup. No subscription. Just use it.
+            {TOOLS.length} tools. No signup. No subscription. Just use it.
           </motion.p>
 
           {/* CTA */}
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={loaded ? { opacity: 1, y: 0, scale: 1 } : {}}
-            transition={{ delay: 0.65, duration: 0.6, ease }}
+            transition={{ delay: 0.65, duration: 0.6, ease: motionEase }}
             className="flex flex-col sm:flex-row items-center justify-center gap-3"
           >
             <Magnetic>
@@ -419,15 +408,9 @@ export default function HomePage() {
       </section>
 
       {/* ── Tool Grid ── */}
-      <section id="tools" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <ParallaxSection offset={30}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6, ease }}
-            className="text-center mb-14"
-          >
+      <section id="tools" className="page-section page-container">
+        <ParallaxLayer offset={30}>
+          <Reveal className="text-center mb-14">
             <h2 className="heading-display text-3xl sm:text-4xl mb-3">
               All {TOOLS.length} tools.{" "}
               <motion.span
@@ -435,7 +418,7 @@ export default function HomePage() {
                 initial={{ opacity: 0, x: -8 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: 0.25, duration: 0.5, ease }}
+                transition={{ delay: 0.25, duration: 0.5, ease: motionEase }}
               >
                 One place.
               </motion.span>
@@ -443,37 +426,25 @@ export default function HomePage() {
             <p className="text-[13px] text-muted-foreground font-mono max-w-md mx-auto">
               Click any tool to start — everything runs locally in your browser.
             </p>
-          </motion.div>
-        </ParallaxSection>
+          </Reveal>
+        </ParallaxLayer>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {TOOLS.map((tool, i) => (
-            <motion.div
-              key={tool.path}
-              initial={{ opacity: 0, y: 28, scale: 0.96 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true, margin: "-30px" }}
-              transition={{ delay: i * 0.04, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <ToolCard {...tool} index={i} />
-            </motion.div>
+            <ToolCard key={tool.path} {...tool} index={i} />
           ))}
         </div>
       </section>
 
       {/* ── Why DevForge ── */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-        <ParallaxSection offset={20}>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55, ease }}
-            className="heading-display text-2xl sm:text-3xl text-center mb-12"
-          >
+      <section className="page-section page-container max-w-4xl">
+        <ParallaxLayer offset={20}>
+          <Reveal>
+            <h2 className="heading-display text-2xl sm:text-3xl text-center mb-12">
             Why DevForge?
-          </motion.h2>
-        </ParallaxSection>
+            </h2>
+          </Reveal>
+        </ParallaxLayer>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {features.map((f, i) => (
             <FeatureCard key={f.title} {...f} index={i} />

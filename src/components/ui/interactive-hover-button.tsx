@@ -18,6 +18,8 @@ const InteractiveHoverButton = React.forwardRef<
       ref={ref}
       className={cn(
         "group relative w-auto cursor-pointer overflow-hidden rounded-full border border-border bg-background p-2 px-6 text-center font-semibold",
+        "shadow-[var(--shadow-xs)] hover:shadow-[var(--shadow-sm)]",
+        "focus-visible:focus-ring",
         className
       )}
       {...props}

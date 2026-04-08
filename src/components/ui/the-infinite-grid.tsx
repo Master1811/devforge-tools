@@ -9,6 +9,7 @@ import {
   useMotionTemplate,
   useAnimationFrame,
   MotionValue,
+  useReducedMotion,
 } from "framer-motion";
 
 interface InfiniteGridProps {
@@ -31,8 +32,10 @@ export const InfiniteGrid = ({
   const patternId = useId();
   const idleTime = useMotionValue(0);
   const pulseOpacity = useMotionValue(0.04);
+  const reducedMotion = useReducedMotion();
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    if (reducedMotion) return;
     const { left, top } = e.currentTarget.getBoundingClientRect();
     mouseX.set(e.clientX - left);
     mouseY.set(e.clientY - top);
@@ -46,6 +49,7 @@ export const InfiniteGrid = ({
   const speedY = 0.5;
 
   useAnimationFrame((_, delta) => {
+    if (reducedMotion) return;
     gridOffsetX.set((gridOffsetX.get() + speedX) % 40);
     gridOffsetY.set((gridOffsetY.get() + speedY) % 40);
 
@@ -65,12 +69,12 @@ export const InfiniteGrid = ({
   const gridLayers = (fromColor: string) => (
     <>
       {/* Base grid with breathing */}
-      <motion.div className="absolute inset-0" style={{ opacity: pulseOpacity }}>
+      <motion.div className="absolute inset-0" style={{ opacity: reducedMotion ? 0.035 : pulseOpacity }}>
         <GridPattern offsetX={gridOffsetX} offsetY={gridOffsetY} patternId={`base-${patternId}`} />
       </motion.div>
 
       {/* Mouse-reveal grid with glow lines */}
-      <motion.div className="absolute inset-0 opacity-30" style={{ maskImage, WebkitMaskImage: maskImage }}>
+      <motion.div className="absolute inset-0 opacity-30" style={reducedMotion ? undefined : { maskImage, WebkitMaskImage: maskImage }}>
         <GridPattern offsetX={gridOffsetX} offsetY={gridOffsetY} patternId={`reveal-${patternId}`} glow />
       </motion.div>
 

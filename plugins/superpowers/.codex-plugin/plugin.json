@@ -1,0 +1,31 @@
+{
+  "name": "superpowers",
+  "version": "0.1.0",
+  "description": "Extended agent capabilities and workflows for DevForge (placeholder — customize before publishing).",
+  "author": {
+    "name": "DevForge",
+    "email": "",
+    "url": "https://devforge.tools"
+  },
+  "homepage": "https://devforge.tools",
+  "repository": "https://github.com/devforge-tools/devforge-tools",
+  "license": "MIT",
+  "keywords": ["devforge", "superpowers", "agent", "workflow"],
+  "interface": {
+    "displayName": "Superpowers",
+    "shortDescription": "Extra capabilities for Codex in this repo.",
+    "longDescription": "Local Codex plugin scaffold. Add skills, hooks, and assets under plugins/superpowers/ and update this manifest.",
+    "developerName": "DevForge",
+    "category": "Productivity",
+    "capabilities": ["Interactive", "Write"],
+    "websiteURL": "https://devforge.tools/",
+    "privacyPolicyURL": "https://devforge.tools/",
+    "termsOfServiceURL": "https://devforge.tools/",
+    "defaultPrompt": [
+      "Run the Superpowers workflow for this task.",
+      "Apply repo conventions from plugins/superpowers.",
+      "Extend Superpowers with a new skill under skills/."
+    ],
+    "brandColor": "#6366F1"
+  }
+}

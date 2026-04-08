@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Reveal from "@/components/shared/Reveal";
 
 interface ToolCardProps {
   name: string;
@@ -16,21 +16,13 @@ interface ToolCardProps {
 
 export default function ToolCard({ name, description, path, icon: Icon, tag, index }: ToolCardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ delay: index * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-    >
+    <Reveal delay={index * 0.035}>
       <Link
         href={path}
         className={cn(
-          "group relative block p-5 rounded-xl border border-[hsl(var(--foreground)/0.1)] bg-surface-1 backdrop-blur-[12px]",
-          "transition-all duration-300 ease-out-expo",
-          "hover:border-primary/30 hover:bg-surface-2 hover:shadow-[var(--shadow-glow)]",
-          "hover:-translate-y-0.5",
+          "group relative block rounded-2xl p-5 surface-panel interactive-card",
           "active:translate-y-0 active:scale-[0.99] active:bg-surface-2",
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+          "focus-visible:focus-ring"
         )}
       >
         {/* Icon with subtle bg */}
@@ -49,6 +41,6 @@ export default function ToolCard({ name, description, path, icon: Icon, tag, ind
           {tag}
         </span>
       </Link>
-    </motion.div>
+    </Reveal>
   );
 }
