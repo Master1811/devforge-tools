@@ -11,6 +11,11 @@ import {
   Lock,
   Shield,
   Code,
+  Target,
+  Flame,
+  TrendingUp,
+  BarChart3,
+  Calculator,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -135,5 +140,51 @@ export const TOOLS: ToolEntry[] = [
     tag: "security",
     tags: ["security", "password", "policy", "enterprise"],
     keywords: ["password", "policy", "auditor", "nist", "owasp", "corporate", "security", "compliance"],
+  },
+  // ── Finance Tools ──────────────────────────────────────────────────────────
+  {
+    name: "₹100Cr Journey Calculator",
+    description: "Map your startup's path to ₹100 Crore ARR. Get T2D3 benchmarks, runway analysis, burn multiple scoring, and actionable insights.",
+    path: "/tools/finance/100cr-calculator",
+    icon: Target,
+    tag: "finance",
+    tags: ["finance", "startup", "saas", "metrics", "india"],
+    keywords: ["100 crore arr", "startup runway", "burn rate", "t2d3", "saas growth", "default alive", "burn multiple", "indian startup"],
+  },
+  {
+    name: "Runway Calculator",
+    description: "Calculate your exact cash runway. See break-even month, net vs gross burn, and default-alive status — fully client-side.",
+    path: "/tools/finance/runway-calculator",
+    icon: Flame,
+    tag: "finance",
+    tags: ["finance", "startup", "runway", "burn", "cash"],
+    keywords: ["startup runway", "cash runway", "net burn", "gross burn", "default alive", "break-even", "burn rate"],
+  },
+  {
+    name: "ARR / MRR Calculator",
+    description: "Decompose MRR into new, expansion, and churned revenue. Calculate ARR, Quick Ratio, and benchmark against top SaaS standards.",
+    path: "/tools/finance/arr-calculator",
+    icon: TrendingUp,
+    tag: "finance",
+    tags: ["finance", "startup", "saas", "arr", "mrr", "metrics"],
+    keywords: ["arr calculator", "mrr calculator", "quick ratio", "net new mrr", "annual recurring revenue", "churn mrr", "expansion mrr"],
+  },
+  {
+    name: "Growth Rate Calculator",
+    description: "Calculate MoM growth, YoY, CAGR, and doubling time. Compare against T2D3 growth model benchmarks.",
+    path: "/tools/finance/growth-rate-calculator",
+    icon: BarChart3,
+    tag: "finance",
+    tags: ["finance", "startup", "growth", "saas", "t2d3", "cagr"],
+    keywords: ["growth rate calculator", "saas mom growth", "cagr calculator", "t2d3 model", "doubling time", "yoy growth"],
+  },
+  {
+    name: "Burn Rate Calculator",
+    description: "Break down monthly burn by category. Calculate net burn, burn multiple, and get actionable capital efficiency insights.",
+    path: "/tools/finance/burn-rate-calculator",
+    icon: Calculator,
+    tag: "finance",
+    tags: ["finance", "startup", "burn", "cash", "expenses"],
+    keywords: ["burn rate calculator", "startup burn rate", "burn multiple", "net burn", "gross burn", "startup expenses", "capital efficiency"],
   },
 ];

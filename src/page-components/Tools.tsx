@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
@@ -114,9 +113,7 @@ export default function ToolsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + index * 0.1 }}
               >
-                <Link href={tool.path}>
-                  <ToolCard {...tool} tag={tool.tags[0] || "tool"} index={index} />
-                </Link>
+                <ToolCard {...tool} tag={tool.tags[0] || "tool"} index={index} />
               </motion.div>
             ))}
           </motion.div>

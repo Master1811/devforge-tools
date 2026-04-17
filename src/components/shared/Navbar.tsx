@@ -4,23 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { Search } from "lucide-react";
+import { Search, Terminal, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence, useSpring, useReducedMotion } from "framer-motion";
+import { motion, useSpring, useReducedMotion } from "framer-motion";
 import { motionEase } from "@/lib/motion";
-
-const toolNames: Record<string, string> = {
-  "/jwt-decoder": "JWT Decoder",
-  "/json-to-typescript": "JSON → TS",
-  "/sql-formatter": "SQL Formatter",
-  "/cron-visualizer": "Cron Visualizer",
-  "/regex-tester": "RegEx Tester",
-  "/base64-encoder": "Base64 Encoder",
-  "/curl-converter": "cURL Converter",
-  "/yaml-json-converter": "YAML ↔ JSON",
-  "/markdown-previewer": "Markdown Preview",
-  "/password-generator": "Password Gen",
-};
 
 /* ─── Magnetic button wrapper ─── */
 function MagneticEl({ children }: { children: React.ReactNode }) {
@@ -50,14 +37,58 @@ function MagneticEl({ children }: { children: React.ReactNode }) {
   );
 }
 
+/* ─── Nav link with colored underline indicator ─── */
+function NavLink({
+  href,
+  label,
+  icon: Icon,
+  isActive,
+  accentClass,
+  borderClass,
+}: {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  isActive: boolean;
+  accentClass: string;
+  borderClass: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-200",
+        isActive
+          ? cn("bg-white/[0.06]", accentClass)
+          : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+      )}
+    >
+      <Icon className="w-3.5 h-3.5" />
+      <span>{label}</span>
+      {/* Underline indicator */}
+      <span
+        className={cn(
+          "absolute bottom-0 left-3 right-3 h-px rounded-full transition-all duration-300",
+          isActive ? cn("opacity-100", borderClass) : "opacity-0"
+        )}
+      />
+    </Link>
+  );
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const reducedMotion = useReducedMotion();
-  const currentTool = toolNames[pathname];
 
-  /* mount entrance */
+  const isFinanceActive = pathname.startsWith("/tools/finance");
+  const isDevActive =
+    !isFinanceActive &&
+    (pathname.startsWith("/tools") ||
+      pathname === "/" ||
+      /^\/(jwt-decoder|json-to|sql-|cron-|regex-|base64-|curl-|yaml-|markdown-|password-)/.test(pathname));
+
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
     return () => clearTimeout(t);
@@ -87,7 +118,7 @@ export default function Navbar() {
           : "bg-transparent"
       )}
     >
-      {/* Thin progress line when scrolled */}
+      {/* Thin progress line */}
       <motion.div
         className="absolute bottom-0 left-0 h-px bg-primary/40 origin-left"
         initial={{ scaleX: 0 }}
@@ -96,12 +127,13 @@ export default function Navbar() {
         style={{ width: "100%" }}
       />
 
-      <div className="page-container h-14 flex items-center justify-between">
-        {/* Wordmark */}
+      <div className="page-container h-14 flex items-center justify-between gap-4">
+
+        {/* ── Logo ── */}
         <MagneticEl>
           <Link
             href="/"
-            className="heading-display text-lg tracking-tight group flex items-center gap-0 select-none"
+            className="heading-display text-lg tracking-tight group flex items-center gap-0 select-none flex-shrink-0"
           >
             <motion.span
               className="transition-colors duration-200"
@@ -120,26 +152,28 @@ export default function Navbar() {
           </Link>
         </MagneticEl>
 
-        <div className="flex items-center gap-1.5">
-          {/* Active tool badge */}
-          <AnimatePresence mode="popLayout">
-            {currentTool && (
-              <motion.span
-                key={currentTool}
-                initial={{ opacity: 0, scale: 0.8, y: -6 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8, y: 6 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="font-mono text-[11px] px-2.5 py-1 rounded-md border border-primary/20
-                           bg-primary/5 text-primary hidden sm:inline-flex items-center gap-1.5"
-              >
-                <span className="w-1 h-1 rounded-full bg-primary/60 animate-pulse" />
-                {currentTool}
-              </motion.span>
-            )}
-          </AnimatePresence>
+        {/* ── Center navigation ── */}
+        <nav className="hidden sm:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
+          <NavLink
+            href="/tools"
+            label="Dev Tools"
+            icon={Terminal}
+            isActive={isDevActive}
+            accentClass="text-cyan-400"
+            borderClass="bg-cyan-400"
+          />
+          <NavLink
+            href="/tools/finance"
+            label="Finance Tools"
+            icon={TrendingUp}
+            isActive={isFinanceActive}
+            accentClass="text-emerald-400"
+            borderClass="bg-emerald-400"
+          />
+        </nav>
 
-          {/* Search button */}
+        {/* ── Right actions ── */}
+        <div className="flex items-center gap-1.5">
           <MagneticEl>
             <motion.button
               onClick={openPalette}
@@ -150,7 +184,6 @@ export default function Navbar() {
                 "flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-border",
                 "bg-surface/40 backdrop-blur-sm text-muted-foreground",
                 "hover:text-foreground hover:border-muted-foreground/30 hover:bg-surface/70",
-                "active:scale-[0.97]",
                 "transition-[background,border-color,color] duration-200 ease-out text-xs font-mono",
                 "group focus-visible:focus-ring"
               )}
@@ -170,7 +203,6 @@ export default function Navbar() {
             </motion.button>
           </MagneticEl>
 
-          {/* Theme toggle */}
           <MagneticEl>
             <ThemeToggle />
           </MagneticEl>

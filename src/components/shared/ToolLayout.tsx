@@ -25,11 +25,18 @@ interface ToolLayoutProps {
   relatedTools: RelatedTool[];
   children: ReactNode;
   jsonLd?: object;
+  /** Override the privacy/client-side banner. Pass null to hide it entirely. */
+  privacyBanner?: { title: string; description: string } | null;
 }
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-export default function ToolLayout({ title, slug, description, howToUse, whatIs, faqs, relatedTools, children, jsonLd }: ToolLayoutProps) {
+const DEFAULT_PRIVACY_BANNER = {
+  title: "100% Client-Side: Your Enterprise SQL/Data Never Leaves Your Browser.",
+  description: "Built for data sovereignty. Unlike cloud optimizers, DevForge performs analysis locally on your machine.",
+};
+
+export default function ToolLayout({ title, slug, description, howToUse, whatIs, faqs, relatedTools, children, jsonLd, privacyBanner = DEFAULT_PRIVACY_BANNER }: ToolLayoutProps) {
   const shell = useShell();
 
   const faqSchema = {
@@ -93,14 +100,16 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
           >
             <h1 className="heading-display text-3xl sm:text-4xl mb-2">{title}</h1>
             <p className="text-muted-foreground text-[15px] mb-3 leading-relaxed">{description}</p>
-            <div className="mb-4 rounded-xl border border-primary/40 bg-primary/15 px-4 py-3 sm:px-5 sm:py-4">
-              <p className="heading-display text-base sm:text-lg text-primary">
-                100% Client-Side: Your Enterprise SQL/Data Never Leaves Your Browser.
-              </p>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                Built for data sovereignty. Unlike cloud optimizers, DevForge performs analysis locally on your machine.
-              </p>
-            </div>
+            {privacyBanner && (
+              <div className="mb-4 rounded-xl border border-primary/40 bg-primary/15 px-4 py-3 sm:px-5 sm:py-4">
+                <p className="heading-display text-base sm:text-lg text-primary">
+                  {privacyBanner.title}
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                  {privacyBanner.description}
+                </p>
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-3">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-surface/50 backdrop-blur-sm text-xs font-mono text-muted-foreground/70">
                 <Shield className="w-3 h-3 text-accent" />
