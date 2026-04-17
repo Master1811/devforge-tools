@@ -12,6 +12,8 @@ import { TOOLS } from "@/lib/tools/registry";
 import {
   ArrowRight, Terminal, Code2, TrendingUp, Zap, Shield, Globe, Sliders,
 } from "lucide-react";
+import FeatureCards from "@/components/sections/FeatureCards";
+import ComparisonTable from "@/components/sections/ComparisonTable";
 
 /* ─────────────────────────────────────────────────────────────────────────
    HERO CAROUSEL
@@ -773,6 +775,12 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      {/* ══ FEATURE CARDS — "Built like a tool should be" ════════════════ */}
+      <FeatureCards />
+
+      {/* ══ COMPARISON TABLE ═════════════════════════════════════════════ */}
+      <ComparisonTable />
 
       {/* ══ CLOSING CTA ══════════════════════════════════════════════════ */}
       <section className="bg-white border-t border-[rgba(0,0,0,0.08)] py-24 px-6">
