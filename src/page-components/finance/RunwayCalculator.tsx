@@ -16,6 +16,13 @@ const DEFAULTS: RunwayInputs = {
   mrrGrowthRate: 8,
 };
 
+const EXAMPLE_INPUTS: RunwayInputs = {
+  cashOnHand: 8,
+  grossBurnRate: 36,
+  currentMRR: 14,
+  mrrGrowthRate: 10,
+};
+
 export default function RunwayCalculatorPage() {
   const sync = useClientScenarioSync<RunwayInputs>(DEFAULTS, "runway");
   const { inputs, patchInput } = sync;
@@ -28,6 +35,7 @@ export default function RunwayCalculatorPage() {
     {
       label: "Runway",
       value: result.runway >= 999 ? "∞" : `${result.runway}mo`,
+      rawValue: result.runway >= 999 ? undefined : result.runway,
       sub: result.runway < 9 ? "Raise immediately" : result.runway < 18 ? "Plan round now" : "Healthy",
       icon: Clock,
       accent: runwayAccent,
@@ -35,6 +43,7 @@ export default function RunwayCalculatorPage() {
     {
       label: "Net Burn",
       value: `₹${result.netBurn}L/mo`,
+      rawValue: result.netBurn,
       sub: result.netBurn === 0 ? "Break-even!" : "Cash out per month",
       icon: Flame,
       accent: result.netBurn === 0 ? "green" : result.netBurn < 30 ? "yellow" : "red",
@@ -42,6 +51,7 @@ export default function RunwayCalculatorPage() {
     {
       label: "Break-even",
       value: result.breakEvenMonth !== null ? `Mo ${result.breakEvenMonth}` : "No",
+      rawValue: result.breakEvenMonth ?? undefined,
       sub: result.breakEvenMonth !== null ? `At ${inputs.mrrGrowthRate}% MoM growth` : "Not within 5 years",
       icon: TrendingDown,
       accent: result.breakEvenMonth !== null && result.breakEvenMonth <= 18 ? "green" : "yellow",
@@ -109,19 +119,20 @@ export default function RunwayCalculatorPage() {
         { q: "How do I extend my runway?", a: "Three levers: cut costs (fastest), grow revenue (best), or raise capital (most dilutive). Most efficient path is cutting non-revenue-generating expenses first, then accelerating sales motions." },
       ]}
       relatedTools={[
-        { name: "₹100Cr Journey", path: "/tools/finance/100cr-calculator", description: "Project your path to ₹100Cr ARR with T2D3 benchmarks." },
-        { name: "Burn Rate Calculator", path: "/tools/finance/burn-rate-calculator", description: "Break down where your money is going by category." },
-        { name: "ARR / MRR Calculator", path: "/tools/finance/arr-calculator", description: "Decompose MRR into new, expansion, and churned revenue." },
+        { name: "₹100Cr Journey", path: "/tools/finance/100cr-calculator", description: "Check if this runway is enough to hit your long-term ARR goal." },
+        { name: "Burn Rate Calculator", path: "/tools/finance/burn-rate-calculator", description: "Understand which costs are shrinking your runway fastest." },
+        { name: "Growth Rate Calculator", path: "/tools/finance/growth-rate-calculator", description: "See what growth rate gets you to break-even sooner." },
       ]}
       summaryCards={summaryCards}
       insightData={result}
+      onLoadExample={() => sync.setInputs(EXAMPLE_INPUTS)}
       scenarioControls={scenarioControls}
       inputs={
         <>
-          <FinanceInputRow label="Cash on Hand" value={inputs.cashOnHand} min={0.5} max={200} step={0.5} prefix="₹" unit="Cr" description="Total cash in bank today" onChange={(v) => patchInput("cashOnHand", v)} />
-          <FinanceInputRow label="Gross Burn Rate" value={inputs.grossBurnRate} min={1} max={500} step={1} prefix="₹" unit="L/mo" description="Total monthly expenses (all-in)" onChange={(v) => patchInput("grossBurnRate", v)} />
-          <FinanceInputRow label="Current MRR" value={inputs.currentMRR} min={0} max={500} step={1} prefix="₹" unit="L/mo" description="Monthly Recurring Revenue today" onChange={(v) => patchInput("currentMRR", v)} />
-          <FinanceInputRow label="MRR Growth Rate" value={inputs.mrrGrowthRate} min={0} max={30} step={0.5} unit="% MoM" description="Expected MoM MRR growth (for break-even projection)" onChange={(v) => patchInput("mrrGrowthRate", v)} />
+          <FinanceInputRow label="Cash on Hand (money currently in the bank)" value={inputs.cashOnHand} min={0.5} max={200} step={0.5} prefix="₹" unit="Cr" description="Total cash in bank today" onChange={(v) => patchInput("cashOnHand", v)} />
+          <FinanceInputRow label="Gross Burn Rate (total monthly spending)" value={inputs.grossBurnRate} min={1} max={500} step={1} prefix="₹" unit="L/mo" description="Total monthly expenses (all-in)" onChange={(v) => patchInput("grossBurnRate", v)} />
+          <FinanceInputRow label="Current MRR (current recurring revenue)" value={inputs.currentMRR} min={0} max={500} step={1} prefix="₹" unit="L/mo" description="Monthly Recurring Revenue today" onChange={(v) => patchInput("currentMRR", v)} />
+          <FinanceInputRow label="MRR Growth Rate (how fast recurring revenue increases)" value={inputs.mrrGrowthRate} min={0} max={30} step={0.5} unit="% MoM" description="Expected MoM MRR growth (for break-even projection)" onChange={(v) => patchInput("mrrGrowthRate", v)} />
         </>
       }
       outputs={

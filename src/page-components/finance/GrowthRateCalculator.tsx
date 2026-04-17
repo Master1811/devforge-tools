@@ -15,6 +15,12 @@ const DEFAULTS: GrowthRateInputs = {
   periodMonths: 12,
 };
 
+const EXAMPLE_INPUTS: GrowthRateInputs = {
+  startARR: 2,
+  endARR: 6,
+  periodMonths: 12,
+};
+
 export default function GrowthRateCalculatorPage() {
   const sync = useClientScenarioSync<GrowthRateInputs>(DEFAULTS, "growth-rate");
   const { inputs, patchInput } = sync;
@@ -24,6 +30,7 @@ export default function GrowthRateCalculatorPage() {
     {
       label: "MoM Growth",
       value: `${result.momGrowthPct}%`,
+      rawValue: result.momGrowthPct,
       sub: "Monthly growth rate",
       icon: TrendingUp,
       accent: result.momGrowthPct >= 10 ? "green" : result.momGrowthPct >= 7 ? "blue" : result.momGrowthPct >= 3 ? "yellow" : "red",
@@ -31,6 +38,7 @@ export default function GrowthRateCalculatorPage() {
     {
       label: "YoY / CAGR",
       value: `${result.yoyGrowthPct.toFixed(0)}%`,
+      rawValue: result.yoyGrowthPct,
       sub: result.yoyGrowthPct >= 100 ? "T2D3 territory" : "Annual growth rate",
       icon: BarChart3,
       accent: result.yoyGrowthPct >= 200 ? "green" : result.yoyGrowthPct >= 100 ? "blue" : "yellow",
@@ -38,6 +46,7 @@ export default function GrowthRateCalculatorPage() {
     {
       label: "Doubling Time",
       value: result.doublingTimeMonths ? `${result.doublingTimeMonths}mo` : "∞",
+      rawValue: result.doublingTimeMonths ?? undefined,
       sub: "Months to 2× ARR",
       icon: Zap,
       accent: result.doublingTimeMonths && result.doublingTimeMonths <= 8 ? "green" : result.doublingTimeMonths && result.doublingTimeMonths <= 14 ? "blue" : "yellow",
@@ -45,6 +54,7 @@ export default function GrowthRateCalculatorPage() {
     {
       label: "To ₹100Cr",
       value: result.monthsTo100Cr ? `${result.monthsTo100Cr}mo` : ">10yr",
+      rawValue: result.monthsTo100Cr ?? undefined,
       sub: result.projectedDate100Cr ?? "Not in 10 years",
       icon: Clock,
       accent: result.monthsTo100Cr && result.monthsTo100Cr <= 36 ? "green" : result.monthsTo100Cr && result.monthsTo100Cr <= 60 ? "blue" : "yellow",
@@ -96,18 +106,19 @@ export default function GrowthRateCalculatorPage() {
         { q: "What MoM growth rate do I need to reach ₹100Cr?", a: "It depends on your starting ARR. From ₹1Cr, you need 9.6% MoM to reach ₹100Cr in ~5 years (T2D3 triple phase). From ₹5Cr, you need 7.4% MoM. From ₹10Cr, 5.9% MoM (T2D3 double phase). Use the ₹100Cr Journey Calculator for the full model." },
       ]}
       relatedTools={[
-        { name: "₹100Cr Journey", path: "/tools/finance/100cr-calculator", description: "Full projection model with burn, runway, and milestone tracking." },
-        { name: "ARR / MRR Calculator", path: "/tools/finance/arr-calculator", description: "Decompose MRR into new, expansion, and churned revenue." },
-        { name: "Runway Calculator", path: "/tools/finance/runway-calculator", description: "Calculate cash runway with MRR growth projections." },
+        { name: "Runway Calculator", path: "/tools/finance/runway-calculator", description: "Check if your cash can support this growth pace long enough." },
+        { name: "₹100Cr Journey", path: "/tools/finance/100cr-calculator", description: "Use this growth rate to map your path to ₹100Cr ARR." },
+        { name: "Burn Rate Calculator", path: "/tools/finance/burn-rate-calculator", description: "Compare growth with spending efficiency before scaling harder." },
       ]}
       summaryCards={summaryCards}
       insightData={result}
+      onLoadExample={() => sync.setInputs(EXAMPLE_INPUTS)}
       scenarioControls={scenarioControls}
       inputs={
         <>
-          <FinanceInputRow label="Starting ARR" value={inputs.startARR} min={0.1} max={100} step={0.1} prefix="₹" unit="Cr" description="ARR at the start of the period" onChange={(v) => patchInput("startARR", v)} />
-          <FinanceInputRow label="Ending ARR" value={inputs.endARR} min={0.2} max={500} step={0.1} prefix="₹" unit="Cr" description="ARR at the end of the period (current)" onChange={(v) => patchInput("endARR", v)} />
-          <FinanceInputRow label="Period" value={inputs.periodMonths} min={1} max={60} step={1} unit=" months" description="Duration between the two data points" onChange={(v) => patchInput("periodMonths", v)} />
+          <FinanceInputRow label="Starting ARR (where your revenue began)" value={inputs.startARR} min={0.1} max={100} step={0.1} prefix="₹" unit="Cr" description="ARR at the start of the period" onChange={(v) => patchInput("startARR", v)} />
+          <FinanceInputRow label="Ending ARR (where your revenue is now)" value={inputs.endARR} min={0.2} max={500} step={0.1} prefix="₹" unit="Cr" description="ARR at the end of the period (current)" onChange={(v) => patchInput("endARR", v)} />
+          <FinanceInputRow label="Period (number of months between both ARR points)" value={inputs.periodMonths} min={1} max={60} step={1} unit=" months" description="Duration between the two data points" onChange={(v) => patchInput("periodMonths", v)} />
 
           {/* T2D3 phase badge */}
           {result.t2d3Phase !== "N/A" && (

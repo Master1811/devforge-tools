@@ -69,6 +69,7 @@ export interface SerializedState<T = Record<string, number>> {
 export interface SummaryCardDef {
   label: string;
   value: string;
+  rawValue?: number;
   sub?: string;
   icon: React.ElementType;
   accent?: "green" | "red" | "blue" | "yellow" | "default";

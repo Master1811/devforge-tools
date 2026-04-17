@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import ToolLayout from "@/components/shared/ToolLayout";
 import InsightEngine from "@/components/shared/InsightEngine";
+import FinanceNextSteps from "@/components/finance/FinanceNextSteps";
 import { useClientScenarioSync } from "@/hooks/useClientScenarioSync";
 import { calculateHundredCrJourney } from "@/lib/tools/finance/hundredCrCalculator";
 import type { HundredCrInputs } from "@/types/finance-tools";
@@ -25,10 +26,12 @@ import {
   Share2,
   RotateCcw,
   Save,
-  ChevronDown,
   CheckCircle2,
+  Copy,
+  Link as LinkIcon,
   X,
   Bookmark,
+  Sparkles,
 } from "lucide-react";
 
 // ── Defaults ──────────────────────────────────────────────────────────────────
@@ -42,6 +45,34 @@ const DEFAULT_INPUTS: HundredCrInputs = {
   arpu: 5000,
   churnRate: 2,
 };
+
+const EXAMPLE_INPUTS: HundredCrInputs = {
+  currentARR: 3.5,
+  monthlyGrowthRate: 11,
+  burnRate: 40,
+  cashOnHand: 8,
+  teamSize: 22,
+  arpu: 6500,
+  churnRate: 1.8,
+};
+
+const NEXT_STEPS = [
+  {
+    name: "Runway Calculator",
+    path: "/tools/finance/runway-calculator",
+    description: "Check if you have enough cash to sustain this growth curve.",
+  },
+  {
+    name: "Growth Rate Calculator",
+    path: "/tools/finance/growth-rate-calculator",
+    description: "See the exact monthly growth needed to hit this timeline.",
+  },
+  {
+    name: "Burn Rate Calculator",
+    path: "/tools/finance/burn-rate-calculator",
+    description: "Understand if your spending profile is efficient enough to scale.",
+  },
+];
 
 // ── Formatting helpers ────────────────────────────────────────────────────────
 
@@ -335,8 +366,10 @@ function ScenarioManager({
 // ── Main calculator page ──────────────────────────────────────────────────────
 
 export default function HundredCrCalculatorPage() {
-  const { inputs, patchInput, savedScenarios, saveScenario, loadScenario, deleteScenario, getShareableUrl, reset } =
+  const { inputs, setInputs, patchInput, savedScenarios, saveScenario, loadScenario, deleteScenario, getShareableUrl, reset } =
     useClientScenarioSync(DEFAULT_INPUTS);
+  const [copiedSticky, setCopiedSticky] = useState(false);
+  const [sharedSticky, setSharedSticky] = useState(false);
 
   const result = useMemo(() => calculateHundredCrJourney(inputs), [inputs]);
 
@@ -366,6 +399,25 @@ export default function HundredCrCalculatorPage() {
   const handleShare = () => {
     const url = getShareableUrl();
     navigator.clipboard.writeText(url).catch(() => {});
+  };
+
+  const handleCopyResults = () => {
+    const payload = [
+      "₹100Cr ARR Journey Calculator",
+      `Time to ₹100Cr: ${fmtMonths(result.monthsToTarget)}`,
+      `Runway: ${result.runway >= 999 ? "∞" : `${result.runway}mo`}`,
+      `Burn Multiple: ${result.burnMultiple >= 99 ? "∞" : `${result.burnMultiple}x`}`,
+      `Default Alive: ${result.isDefaultAlive ? "Yes" : "No"}`,
+    ].join("\n");
+    navigator.clipboard.writeText(payload).catch(() => {});
+    setCopiedSticky(true);
+    setTimeout(() => setCopiedSticky(false), 1800);
+  };
+
+  const handleShareSticky = () => {
+    handleShare();
+    setSharedSticky(true);
+    setTimeout(() => setSharedSticky(false), 1800);
   };
 
   const runwayAccent: "green" | "yellow" | "red" =
@@ -444,8 +496,9 @@ export default function HundredCrCalculatorPage() {
           description: "Model LTV, CAC, payback period, and magic number.",
         },
       ]}
+      hideRelatedToolsSection
     >
-      <div className="p-4 sm:p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6 pb-24">
         {/* ── Summary metrics row ── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <MetricCard
@@ -482,13 +535,20 @@ export default function HundredCrCalculatorPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-6">
           {/* Inputs */}
           <div className="space-y-4">
+            <button
+              onClick={() => setInputs(EXAMPLE_INPUTS)}
+              className="w-full inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-lg border border-primary/25 bg-primary/10 hover:bg-primary/15 text-primary text-[12px] font-medium transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Example inputs
+            </button>
             <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] backdrop-blur-sm p-5 space-y-5">
               <p className="text-[11px] font-mono text-muted-foreground/50 uppercase tracking-widest">
                 Your Numbers
               </p>
 
               <InputRow
-                label="Current ARR"
+                label="Current ARR (your annual recurring revenue today)"
                 value={inputs.currentARR}
                 min={0.1}
                 max={50}
@@ -500,7 +560,7 @@ export default function HundredCrCalculatorPage() {
               />
 
               <InputRow
-                label="Monthly Growth Rate"
+                label="Monthly Growth Rate (how fast your ARR grows each month)"
                 value={inputs.monthlyGrowthRate}
                 min={1}
                 max={30}
@@ -511,7 +571,7 @@ export default function HundredCrCalculatorPage() {
               />
 
               <InputRow
-                label="Monthly Burn"
+                label="Monthly Burn (cash spent every month)"
                 value={inputs.burnRate}
                 min={1}
                 max={500}
@@ -523,7 +583,7 @@ export default function HundredCrCalculatorPage() {
               />
 
               <InputRow
-                label="Cash on Hand"
+                label="Cash on Hand (money currently in the bank)"
                 value={inputs.cashOnHand}
                 min={0.5}
                 max={200}
@@ -535,7 +595,7 @@ export default function HundredCrCalculatorPage() {
               />
 
               <InputRow
-                label="Monthly Churn"
+                label="Monthly Churn (revenue lost from customer churn)"
                 value={inputs.churnRate}
                 min={0.1}
                 max={10}
@@ -546,7 +606,7 @@ export default function HundredCrCalculatorPage() {
               />
 
               <InputRow
-                label="ARPU"
+                label="ARPU (average revenue per customer)"
                 value={inputs.arpu}
                 min={500}
                 max={100000}
@@ -580,8 +640,8 @@ export default function HundredCrCalculatorPage() {
                 <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="arrGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(239 84% 67%)" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="hsl(239 84% 67%)" stopOpacity={0} />
+                      <stop offset="5%" stopColor="hsl(214 95% 52%)" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="hsl(214 95% 52%)" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="cashGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(160 84% 43%)" stopOpacity={0.2} />
@@ -621,7 +681,7 @@ export default function HundredCrCalculatorPage() {
                   <Area
                     type="monotone"
                     dataKey="arr"
-                    stroke="hsl(239 84% 67%)"
+                    stroke="hsl(214 95% 52%)"
                     fill="url(#arrGrad)"
                     strokeWidth={2}
                     dot={false}
@@ -663,6 +723,39 @@ export default function HundredCrCalculatorPage() {
         {/* ── Insight Engine (full width) ── */}
         <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] backdrop-blur-sm p-5">
           <InsightEngine data={result} />
+        </div>
+
+        <FinanceNextSteps tools={NEXT_STEPS} />
+      </div>
+
+      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 w-[min(960px,calc(100%-1.5rem))] rounded-xl border border-white/10 bg-background/90 backdrop-blur-md shadow-lg px-3 py-2.5">
+        <div className="flex items-center justify-between gap-2">
+          <p className="hidden sm:block text-[11px] font-mono text-muted-foreground/65 uppercase tracking-widest">
+            Quick Actions
+          </p>
+          <div className="w-full sm:w-auto grid grid-cols-3 gap-2">
+            <button
+              onClick={handleCopyResults}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-border/80 bg-surface/70 hover:bg-surface text-[12px] font-medium transition-colors"
+            >
+              {copiedSticky ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              {copiedSticky ? "Copied" : "Copy Results"}
+            </button>
+            <button
+              onClick={handleShareSticky}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-border/80 bg-surface/70 hover:bg-surface text-[12px] font-medium transition-colors"
+            >
+              {sharedSticky ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <LinkIcon className="w-3.5 h-3.5" />}
+              {sharedSticky ? "Copied" : "Share Link"}
+            </button>
+            <button
+              onClick={reset}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-border/80 bg-surface/70 hover:bg-surface text-[12px] font-medium transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset
+            </button>
+          </div>
         </div>
       </div>
     </ToolLayout>

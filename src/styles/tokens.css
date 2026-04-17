@@ -1,0 +1,140 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   DevForge Design Tokens — Monochrome Vibrant (Light)
+
+   Philosophy: vibrance through contrast, not color. Pure white × pure black,
+   with opacity-derived grays for depth. Flat surfaces, 1px borders.
+   ───────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Raw palette ── */
+  --color-bg:            #FAFAFA;
+  --color-bg-elevated:   #F2F2F2;
+  --color-surface:       #E8E8E8;
+  --color-fg:            #0A0A0A;
+  --color-accent:        #000000;
+  --color-accent-inv:    #FAFAFA;
+
+  /* RGBA for borders and overlays on light surfaces */
+  --color-border:        rgba(0, 0, 0, 0.08);
+  --color-border-strong: rgba(0, 0, 0, 0.16);
+  --color-fg-muted:      rgba(10, 10, 10, 0.60);
+  --color-fg-subtle:     rgba(10, 10, 10, 0.38);
+
+  /* ── Layout ── */
+  --nav-height:          64px;
+  --content-max:         1200px;
+
+  /* ── Motion ── */
+  --ease-sharp:          cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast:       120ms;
+  --duration-ui:         200ms;
+  --duration-page:       320ms;
+
+  /* ── Typography ── */
+  --font-display:        'Epic Pro', var(--font-geist-sans), 'Geist', system-ui, sans-serif;
+  --font-body:           'Epic Pro', var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-mono:           'Epic Pro', var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
+
+  /* ── Shadows ── */
+  --shadow-sm:           0 1px 3px rgb(0 0 0 / 0.06);
+  --shadow-md:           0 4px 20px rgb(0 0 0 / 0.08);
+  --shadow-nav:          0 4px 24px rgb(0 0 0 / 0.08), 0 1px 0 rgba(0,0,0,0.04);
+  --shadow-glow-white:   0 0 28px -4px rgba(0, 0, 0, 0.08);
+
+  /* ── Tailwind HSL bridge ── */
+  --background:          0 0% 98%;        /* #FAFAFA */
+  --foreground:          0 0% 4%;         /* #0A0A0A */
+
+  --card:                0 0% 95%;        /* #F2F2F2 */
+  --card-foreground:     0 0% 4%;
+
+  --popover:             0 0% 100%;
+  --popover-foreground:  0 0% 4%;
+
+  --primary:             0 0% 4%;         /* black — primary CTA on white bg */
+  --primary-foreground:  0 0% 98%;
+
+  --secondary:           0 0% 91%;        /* #E8E8E8 */
+  --secondary-foreground:0 0% 4%;
+
+  --muted:               0 0% 91%;
+  --muted-foreground:    0 0% 40%;
+
+  --accent:              0 0% 4%;
+  --accent-foreground:   0 0% 98%;
+
+  --destructive:         0 72% 51%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border:              0 0% 88%;        /* ≈ rgba(0,0,0,0.08) on #FAFAFA */
+  --input:               0 0% 92%;
+  --ring:                0 0% 4%;         /* black focus ring */
+
+  --radius:              0.375rem;
+
+  --surface:             0 0% 96%;
+  --surface2:            0 0% 91%;
+
+  /* Legacy sidebar */
+  --sidebar-background:          0 0% 96%;
+  --sidebar-foreground:          0 0% 4%;
+  --sidebar-primary:             0 0% 4%;
+  --sidebar-primary-foreground:  0 0% 98%;
+  --sidebar-accent:              0 0% 91%;
+  --sidebar-accent-foreground:   0 0% 4%;
+  --sidebar-border:              0 0% 88%;
+  --sidebar-ring:                0 0% 4%;
+
+  /* Shadow vars */
+  --shadow-xs:       0 1px 2px rgb(0 0 0 / 0.06);
+  --shadow-glow:     0 0 24px -4px rgba(0, 0, 0, 0.06);
+  --shadow-glow-accent: 0 0 24px -4px rgba(0, 0, 0, 0.08);
+
+  /* Legacy timing */
+  --ease-out-expo:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-smooth: cubic-bezier(0.45, 0, 0.15, 1);
+  --spring:          cubic-bezier(0.34, 1.56, 0.64, 1);
+  --motion-duration-fast:   120ms;
+  --motion-duration-normal: 200ms;
+  --motion-duration-slow:   320ms;
+  --section-space:   clamp(3.5rem, 7vw, 6.5rem);
+  --content-max-width: 1200px;
+}
+
+/* ── Dark mode ─────────────────────────────────────────────────────────── */
+[data-theme="dark"], .dark {
+  --color-bg:            #0A0A0A;
+  --color-bg-elevated:   #141414;
+  --color-surface:       #1C1C1C;
+  --color-fg:            #FAFAFA;
+  --color-accent:        #FFFFFF;
+  --color-accent-inv:    #0A0A0A;
+  --color-border:        rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+  --color-fg-muted:      rgba(250, 250, 250, 0.65);
+  --color-fg-subtle:     rgba(250, 250, 250, 0.40);
+
+  --background:          0 0% 4%;
+  --foreground:          0 0% 98%;
+  --card:                0 0% 8%;
+  --card-foreground:     0 0% 98%;
+  --popover:             0 0% 8%;
+  --popover-foreground:  0 0% 98%;
+  --primary:             0 0% 98%;
+  --primary-foreground:  0 0% 4%;
+  --secondary:           0 0% 11%;
+  --secondary-foreground:0 0% 98%;
+  --muted:               0 0% 11%;
+  --muted-foreground:    0 0% 64%;
+  --accent:              0 0% 100%;
+  --accent-foreground:   0 0% 4%;
+  --border:              0 0% 14%;
+  --input:               0 0% 12%;
+  --ring:                0 0% 100%;
+  --surface:             0 0% 11%;
+  --surface2:            0 0% 16%;
+
+  --shadow-xs:       0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-glow:     0 0 24px -4px rgba(255, 255, 255, 0.08);
+  --shadow-glow-accent: 0 0 24px -4px rgba(255, 255, 255, 0.10);
+}

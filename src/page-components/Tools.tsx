@@ -9,13 +9,13 @@ import { Zap, Globe, Shield, Search } from "lucide-react";
 import { TOOLS } from "@/lib/tools/registry";
 
 const categories = [
-  { id: "all", label: "All Tools", count: TOOLS.length },
-  { id: "auth", label: "Authentication", count: TOOLS.filter(t => t.tags.includes("auth")).length },
-  { id: "api", label: "API Tools", count: TOOLS.filter(t => t.tags.includes("api")).length },
-  { id: "database", label: "Database", count: TOOLS.filter(t => t.tags.includes("database")).length },
-  { id: "text", label: "Text Processing", count: TOOLS.filter(t => t.tags.includes("text")).length },
-  { id: "security", label: "Security", count: TOOLS.filter(t => t.tags.includes("security")).length },
-  { id: "conversion", label: "Converters", count: TOOLS.filter(t => t.tags.includes("conversion")).length },
+  { id: "all",         label: "All Tools",      count: TOOLS.length },
+  { id: "interactive", label: "Interactive",     count: TOOLS.filter(t => t.tags.includes("interactive")).length },
+  { id: "finance",     label: "Finance",         count: TOOLS.filter(t => t.tags.includes("finance")).length },
+  { id: "auth",        label: "Auth",            count: TOOLS.filter(t => t.tags.includes("auth")).length },
+  { id: "api",         label: "API Tools",       count: TOOLS.filter(t => t.tags.includes("api")).length },
+  { id: "database",    label: "Database",        count: TOOLS.filter(t => t.tags.includes("database")).length },
+  { id: "security",    label: "Security",        count: TOOLS.filter(t => t.tags.includes("security")).length },
 ];
 
 export default function ToolsPage() {
@@ -31,6 +31,11 @@ export default function ToolsPage() {
     const matchesCategory = selectedCategory === "all" || tool.tags.includes(selectedCategory);
 
     return matchesSearch && matchesCategory;
+  }).sort((a, b) => {
+    const rank = (tag: string) => tag === "interactive" ? 0 : tag === "finance" ? 1 : 2;
+    const diff = rank(a.tag) - rank(b.tag);
+    if (diff !== 0) return diff;
+    return a.name.localeCompare(b.name);
   });
 
   return (
@@ -113,7 +118,15 @@ export default function ToolsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + index * 0.1 }}
               >
-                <ToolCard {...tool} tag={tool.tags[0] || "tool"} index={index} />
+                <ToolCard
+                  {...tool}
+                  tag={
+                    tool.tag === "interactive" ? "[Interactive]"
+                    : tool.tag === "finance"  ? "[Finance]"
+                    : "[Dev]"
+                  }
+                  index={index}
+                />
               </motion.div>
             ))}
           </motion.div>

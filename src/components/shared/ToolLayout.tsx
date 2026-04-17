@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ReactNode } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import AdContainer from "../ads/AdContainer";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
@@ -27,6 +27,8 @@ interface ToolLayoutProps {
   jsonLd?: object;
   /** Override the privacy/client-side banner. Pass null to hide it entirely. */
   privacyBanner?: { title: string; description: string } | null;
+  /** Hide the default related tools block when page provides an inline journey section. */
+  hideRelatedToolsSection?: boolean;
 }
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -36,8 +38,21 @@ const DEFAULT_PRIVACY_BANNER = {
   description: "Built for data sovereignty. Unlike cloud optimizers, DevForge performs analysis locally on your machine.",
 };
 
-export default function ToolLayout({ title, slug, description, howToUse, whatIs, faqs, relatedTools, children, jsonLd, privacyBanner = DEFAULT_PRIVACY_BANNER }: ToolLayoutProps) {
+export default function ToolLayout({
+  title,
+  slug,
+  description,
+  howToUse,
+  whatIs,
+  faqs,
+  relatedTools,
+  children,
+  jsonLd,
+  privacyBanner = DEFAULT_PRIVACY_BANNER,
+  hideRelatedToolsSection = false,
+}: ToolLayoutProps) {
   const shell = useShell();
+  const reducedMotion = useReducedMotion();
 
   const faqSchema = {
     "@context": "https://schema.org",
@@ -93,19 +108,21 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
 
           {/* Header */}
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={reducedMotion
+              ? { opacity: 0 }
+              : { opacity: 0, y: 16, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.5, ease }}
             className="mb-6"
           >
-            <h1 className="heading-display text-3xl sm:text-4xl mb-2">{title}</h1>
-            <p className="text-muted-foreground text-[15px] mb-3 leading-relaxed">{description}</p>
+            <h1 className="font-display font-bold tracking-[-0.03em] leading-[1.06] text-3xl sm:text-4xl mb-2">{title}</h1>
+            <p className="font-display text-muted-foreground text-[15px] mb-3 leading-relaxed">{description}</p>
             {privacyBanner && (
-              <div className="mb-4 rounded-xl border border-primary/40 bg-primary/15 px-4 py-3 sm:px-5 sm:py-4">
-                <p className="heading-display text-base sm:text-lg text-primary">
+              <div className="mb-4 rounded-xl border border-[rgba(0,0,0,0.12)] bg-[rgba(0,0,0,0.03)] px-4 py-3 sm:px-5 sm:py-4">
+                <p className="font-display font-semibold text-base sm:text-lg text-[#0A0A0A]">
                   {privacyBanner.title}
                 </p>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                <p className="font-display text-xs sm:text-sm text-muted-foreground mt-1">
                   {privacyBanner.description}
                 </p>
               </div>
@@ -168,7 +185,7 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
           <div className="max-w-4xl space-y-12 mt-14">
             <Reveal>
               <section>
-              <h2 className="heading-display text-2xl mb-5">How to Use {title}</h2>
+              <h2 className="font-display font-bold tracking-[-0.025em] text-2xl mb-5">How to Use {title}</h2>
               <ol className="list-decimal list-inside space-y-2.5 text-muted-foreground text-[15px] leading-relaxed">
                 {howToUse.map((step, i) => <li key={i}>{step}</li>)}
               </ol>
@@ -177,14 +194,14 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
 
             <Reveal delay={0.05}>
               <section>
-              <h2 className="heading-display text-2xl mb-5">{whatIs.title}</h2>
+              <h2 className="font-display font-bold tracking-[-0.025em] text-2xl mb-5">{whatIs.title}</h2>
               <p className="text-muted-foreground text-[15px] leading-relaxed">{whatIs.content}</p>
               </section>
             </Reveal>
 
             <Reveal delay={0.08}>
               <section>
-              <h2 className="heading-display text-2xl mb-5">Frequently Asked Questions</h2>
+              <h2 className="font-display font-bold tracking-[-0.025em] text-2xl mb-5">Frequently Asked Questions</h2>
               <div className="space-y-3">
                 {faqs.map((faq, i) => (
                   <details
@@ -206,28 +223,30 @@ export default function ToolLayout({ title, slug, description, howToUse, whatIs,
               </section>
             </Reveal>
 
-            <Reveal delay={0.12}>
-              <section>
-              <h2 className="heading-display text-2xl mb-5">Related Tools</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {relatedTools.map(t => (
-                  <Link
-                    key={t.path}
-                    href={t.path}
-                    className={cn(
-                      "group block p-4 border border-border rounded-xl bg-surface/60 backdrop-blur-sm",
-                      "transition-all duration-300 ease-out-expo",
-                      "hover:border-primary/30 hover:shadow-[var(--shadow-glow)]",
-                      "hover:-translate-y-0.5 active:translate-y-0"
-                    )}
-                  >
-                    <h3 className="font-semibold text-[15px] mb-1 group-hover:text-primary transition-colors duration-200">{t.name}</h3>
-                    <p className="text-[13px] text-muted-foreground leading-relaxed">{t.description}</p>
-                  </Link>
-                ))}
-              </div>
-              </section>
-            </Reveal>
+            {!hideRelatedToolsSection && (
+              <Reveal delay={0.12}>
+                <section>
+                <h2 className="font-display font-bold tracking-[-0.025em] text-2xl mb-5">Related Tools</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {relatedTools.map(t => (
+                    <Link
+                      key={t.path}
+                      href={t.path}
+                      className={cn(
+                        "group block p-4 border border-border rounded-xl bg-surface/60 backdrop-blur-sm",
+                        "transition-all duration-300 ease-out-expo",
+                        "hover:border-primary/30 hover:shadow-[var(--shadow-glow)]",
+                        "hover:-translate-y-0.5 active:translate-y-0"
+                      )}
+                    >
+                      <h3 className="font-semibold text-[15px] mb-1 group-hover:text-primary transition-colors duration-200">{t.name}</h3>
+                      <p className="text-[13px] text-muted-foreground leading-relaxed">{t.description}</p>
+                    </Link>
+                  ))}
+                </div>
+                </section>
+              </Reveal>
+            )}
           </div>
 
           {/* Bottom banner ad */}

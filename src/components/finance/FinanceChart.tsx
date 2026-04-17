@@ -15,7 +15,7 @@ import type { ChartSeries, ChartReferenceLine } from "@/types/finance-tools";
 
 // HSL values mapped from CSS design tokens
 const COLOR_MAP: Record<string, string> = {
-  primary: "hsl(239 84% 67%)",
+  primary: "hsl(214 95% 52%)",
   accent: "hsl(160 84% 43%)",
   destructive: "hsl(330 81% 56%)",
   yellow: "hsl(38 92% 50%)",

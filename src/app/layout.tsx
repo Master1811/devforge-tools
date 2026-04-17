@@ -1,20 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Syne, DM_Mono } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { Providers } from "./providers";
 
-const syne = Syne({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-syne",
+  variable: "--font-inter",
   display: "swap",
-  weight: ["400", "600", "700", "800"],
+  weight: ["400", "500", "600"],
+  preload: true,
 });
 
-const dmMono = DM_Mono({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-dm-mono",
+  variable: "--font-jetbrains-mono",
   display: "swap",
   weight: ["400", "500"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -46,14 +50,12 @@ export const metadata: Metadata = {
     url: "https://devforge.tools",
     siteName: "DevForge",
     title: "DevForge — Free Developer Tools Online",
-    description:
-      "10 essential developer tools. Free forever, no signup.",
+    description: "10 essential developer tools. Free forever, no signup.",
   },
   twitter: {
     card: "summary_large_image",
     title: "DevForge — Free Developer Tools Online",
-    description:
-      "10 essential developer tools. Free forever, no signup.",
+    description: "10 essential developer tools. Free forever, no signup.",
   },
   robots: {
     index: true,
@@ -71,26 +73,21 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#fafafa",
+  themeColor: "#FAFAFA",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="canonical" href="https://devforge.tools" />
       </head>
       <body
-        className={`${syne.variable} ${dmMono.variable} font-sans antialiased`}
+        className={`${GeistSans.variable} ${GeistMono.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
       >
         <Providers>{children}</Providers>
       </body>
     </html>
   );
 }
-

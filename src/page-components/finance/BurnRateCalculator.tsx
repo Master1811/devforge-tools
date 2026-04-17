@@ -20,6 +20,16 @@ const DEFAULTS: BurnRateInputs = {
   cashOnHand: 5,
 };
 
+const EXAMPLE_INPUTS: BurnRateInputs = {
+  salaries: 28,
+  infrastructure: 4,
+  marketing: 6,
+  operations: 3,
+  other: 1.5,
+  currentMRR: 14,
+  cashOnHand: 7,
+};
+
 export default function BurnRateCalculatorPage() {
   const sync = useClientScenarioSync<BurnRateInputs>(DEFAULTS, "burn-rate");
   const { inputs, patchInput } = sync;
@@ -29,6 +39,7 @@ export default function BurnRateCalculatorPage() {
     {
       label: "Gross Burn",
       value: `₹${result.grossBurn}L/mo`,
+      rawValue: result.grossBurn,
       sub: "All-in monthly spend",
       icon: Flame,
       accent: result.grossBurn < 30 ? "green" : result.grossBurn < 80 ? "yellow" : "red",
@@ -36,6 +47,7 @@ export default function BurnRateCalculatorPage() {
     {
       label: "Net Burn",
       value: result.netBurn === 0 ? "₹0" : `₹${result.netBurn}L/mo`,
+      rawValue: result.netBurn,
       sub: result.netBurn === 0 ? "Break-even!" : "Cash depleted per month",
       icon: TrendingDown,
       accent: result.netBurn === 0 ? "green" : result.netBurn < 30 ? "yellow" : "red",
@@ -43,6 +55,7 @@ export default function BurnRateCalculatorPage() {
     {
       label: "Runway",
       value: result.runway >= 999 ? "∞" : `${result.runway}mo`,
+      rawValue: result.runway >= 999 ? undefined : result.runway,
       sub: result.runway < 12 ? "Critical" : result.runway < 18 ? "Plan round" : "Healthy",
       icon: Clock,
       accent: result.runway >= 18 ? "green" : result.runway >= 9 ? "yellow" : "red",
@@ -50,6 +63,7 @@ export default function BurnRateCalculatorPage() {
     {
       label: "Burn Multiple",
       value: result.burnMultiple >= 99 ? "∞" : `${result.burnMultiple}x`,
+      rawValue: result.burnMultiple >= 99 ? undefined : result.burnMultiple,
       sub: result.burnMultiple <= 1 ? "Best-in-class" : result.burnMultiple <= 2.5 ? "Acceptable" : "Inefficient",
       icon: BarChart3,
       accent: result.burnMultiple <= 1.5 ? "green" : result.burnMultiple <= 2.5 ? "yellow" : "red",
@@ -97,29 +111,30 @@ export default function BurnRateCalculatorPage() {
         { q: "What is months to break-even?", a: "The number of months until your MRR covers your gross burn. This calculator uses an 8% MoM growth assumption. Your actual break-even depends on your real growth rate from the ARR calculator." },
       ]}
       relatedTools={[
-        { name: "Runway Calculator", path: "/tools/finance/runway-calculator", description: "Calculate exact runway with MRR growth projections." },
-        { name: "ARR / MRR Calculator", path: "/tools/finance/arr-calculator", description: "Understand your MRR composition and Quick Ratio." },
-        { name: "₹100Cr Journey", path: "/tools/finance/100cr-calculator", description: "Model your path to ₹100Cr ARR." },
+        { name: "Runway Calculator", path: "/tools/finance/runway-calculator", description: "Check how this burn profile impacts your survival timeline." },
+        { name: "Growth Rate Calculator", path: "/tools/finance/growth-rate-calculator", description: "See the growth pace needed to offset this spending." },
+        { name: "₹100Cr Journey", path: "/tools/finance/100cr-calculator", description: "Test if this burn can realistically support your long-term target." },
       ]}
       summaryCards={summaryCards}
       insightData={result}
+      onLoadExample={() => sync.setInputs(EXAMPLE_INPUTS)}
       scenarioControls={scenarioControls}
       inputs={
         <>
           <p className="text-[11px] font-mono text-muted-foreground/40 uppercase tracking-widest -mb-1">
             Monthly Expenses (₹ Lakhs)
           </p>
-          <FinanceInputRow label="Salaries & Benefits" value={inputs.salaries} min={0} max={300} step={1} prefix="₹" unit="L" description="Team salaries + contractor fees" onChange={(v) => patchInput("salaries", v)} />
-          <FinanceInputRow label="Infrastructure" value={inputs.infrastructure} min={0} max={50} step={0.5} prefix="₹" unit="L" description="Cloud, servers, tools" onChange={(v) => patchInput("infrastructure", v)} />
-          <FinanceInputRow label="Marketing & Sales" value={inputs.marketing} min={0} max={100} step={1} prefix="₹" unit="L" description="Ads, events, sales tools" onChange={(v) => patchInput("marketing", v)} />
-          <FinanceInputRow label="Operations" value={inputs.operations} min={0} max={50} step={0.5} prefix="₹" unit="L" description="Office, travel, legal, admin" onChange={(v) => patchInput("operations", v)} />
-          <FinanceInputRow label="Other" value={inputs.other} min={0} max={50} step={0.5} prefix="₹" unit="L" description="Miscellaneous expenses" onChange={(v) => patchInput("other", v)} />
+          <FinanceInputRow label="Salaries & Benefits (team compensation)" value={inputs.salaries} min={0} max={300} step={1} prefix="₹" unit="L" description="Team salaries + contractor fees" onChange={(v) => patchInput("salaries", v)} />
+          <FinanceInputRow label="Infrastructure (cloud and tools spend)" value={inputs.infrastructure} min={0} max={50} step={0.5} prefix="₹" unit="L" description="Cloud, servers, tools" onChange={(v) => patchInput("infrastructure", v)} />
+          <FinanceInputRow label="Marketing & Sales (customer acquisition spend)" value={inputs.marketing} min={0} max={100} step={1} prefix="₹" unit="L" description="Ads, events, sales tools" onChange={(v) => patchInput("marketing", v)} />
+          <FinanceInputRow label="Operations (non-product business costs)" value={inputs.operations} min={0} max={50} step={0.5} prefix="₹" unit="L" description="Office, travel, legal, admin" onChange={(v) => patchInput("operations", v)} />
+          <FinanceInputRow label="Other (remaining monthly spend)" value={inputs.other} min={0} max={50} step={0.5} prefix="₹" unit="L" description="Miscellaneous expenses" onChange={(v) => patchInput("other", v)} />
           <div className="border-t border-white/[0.06] pt-4 space-y-4">
             <p className="text-[11px] font-mono text-muted-foreground/40 uppercase tracking-widest">
               Revenue & Cash
             </p>
-            <FinanceInputRow label="Current MRR" value={inputs.currentMRR} min={0} max={500} step={1} prefix="₹" unit="L/mo" description="Monthly Recurring Revenue" onChange={(v) => patchInput("currentMRR", v)} />
-            <FinanceInputRow label="Cash on Hand" value={inputs.cashOnHand} min={0.5} max={200} step={0.5} prefix="₹" unit="Cr" description="Total cash in bank" onChange={(v) => patchInput("cashOnHand", v)} />
+            <FinanceInputRow label="Current MRR (monthly recurring revenue)" value={inputs.currentMRR} min={0} max={500} step={1} prefix="₹" unit="L/mo" description="Monthly Recurring Revenue" onChange={(v) => patchInput("currentMRR", v)} />
+            <FinanceInputRow label="Cash on Hand (total cash available now)" value={inputs.cashOnHand} min={0.5} max={200} step={0.5} prefix="₹" unit="Cr" description="Total cash in bank" onChange={(v) => patchInput("cashOnHand", v)} />
           </div>
         </>
       }

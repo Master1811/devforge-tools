@@ -16,6 +16,13 @@ const DEFAULTS: ArrInputs = {
   expansionMRR: 1,
 };
 
+const EXAMPLE_INPUTS: ArrInputs = {
+  currentMRR: 35,
+  newMRR: 6,
+  churnedMRR: 1.8,
+  expansionMRR: 2.4,
+};
+
 export default function ArrCalculatorPage() {
   const sync = useClientScenarioSync<ArrInputs>(DEFAULTS, "arr");
   const { inputs, patchInput } = sync;
@@ -25,6 +32,7 @@ export default function ArrCalculatorPage() {
     {
       label: "Current ARR",
       value: `₹${result.currentARR}Cr`,
+      rawValue: result.currentARR,
       sub: `₹${inputs.currentMRR}L MRR`,
       icon: TrendingUp,
       accent: "blue",
@@ -32,6 +40,7 @@ export default function ArrCalculatorPage() {
     {
       label: "Net New MRR",
       value: `${result.netNewMRR >= 0 ? "+" : ""}₹${result.netNewMRR.toFixed(0)}L`,
+      rawValue: result.netNewMRR,
       sub: `${result.momGrowthPct >= 0 ? "+" : ""}${result.momGrowthPct}% MoM`,
       icon: Zap,
       accent: result.momGrowthPct >= 7 ? "green" : result.momGrowthPct >= 3 ? "yellow" : "red",
@@ -39,6 +48,7 @@ export default function ArrCalculatorPage() {
     {
       label: "Quick Ratio",
       value: result.quickRatio >= 99 ? "∞" : `${result.quickRatio}x`,
+      rawValue: result.quickRatio >= 99 ? undefined : result.quickRatio,
       sub: "(New + Exp) ÷ Churn",
       icon: BarChart3,
       accent: result.quickRatio >= 4 ? "green" : result.quickRatio >= 2 ? "yellow" : "red",
@@ -46,6 +56,7 @@ export default function ArrCalculatorPage() {
     {
       label: "Implied ARR",
       value: `₹${result.impliedARR}Cr`,
+      rawValue: result.impliedARR,
       sub: "Next month × 12",
       icon: ArrowUpRight,
       accent: result.impliedARR > result.currentARR ? "green" : "red",
@@ -93,19 +104,20 @@ export default function ArrCalculatorPage() {
         { q: "What does Net Revenue Retention (NRR) tell me?", a: "NRR = (starting MRR + expansion − churn) / starting MRR. Above 100% means existing customers are growing their spend — the most capital-efficient growth possible. Top companies achieve 120–140% NRR." },
       ]}
       relatedTools={[
-        { name: "Growth Rate Calculator", path: "/tools/finance/growth-rate-calculator", description: "Calculate MoM, YoY, and CAGR from any two data points." },
-        { name: "₹100Cr Journey", path: "/tools/finance/100cr-calculator", description: "Map your path to ₹100Cr ARR with T2D3 benchmarks." },
-        { name: "Runway Calculator", path: "/tools/finance/runway-calculator", description: "See how long your cash lasts given current burn." },
+        { name: "Growth Rate Calculator", path: "/tools/finance/growth-rate-calculator", description: "See how fast this revenue base needs to grow month over month." },
+        { name: "Runway Calculator", path: "/tools/finance/runway-calculator", description: "Check if your current cash can sustain this growth pace." },
+        { name: "Burn Rate Calculator", path: "/tools/finance/burn-rate-calculator", description: "Understand whether spending is efficient for your ARR trajectory." },
       ]}
       summaryCards={summaryCards}
       insightData={result}
+      onLoadExample={() => sync.setInputs(EXAMPLE_INPUTS)}
       scenarioControls={scenarioControls}
       inputs={
         <>
-          <FinanceInputRow label="Current MRR" value={inputs.currentMRR} min={0.1} max={500} step={0.5} prefix="₹" unit="L/mo" description="Total MRR today" onChange={(v) => patchInput("currentMRR", v)} />
-          <FinanceInputRow label="New Logo MRR" value={inputs.newMRR} min={0} max={200} step={0.5} prefix="₹" unit="L/mo" description="MRR from brand-new customers this month" onChange={(v) => patchInput("newMRR", v)} />
-          <FinanceInputRow label="Churned MRR" value={inputs.churnedMRR} min={0} max={100} step={0.1} prefix="₹" unit="L/mo" description="MRR lost from cancellations" onChange={(v) => patchInput("churnedMRR", v)} />
-          <FinanceInputRow label="Expansion MRR" value={inputs.expansionMRR} min={0} max={100} step={0.1} prefix="₹" unit="L/mo" description="Upsell + seat expansion from existing customers" onChange={(v) => patchInput("expansionMRR", v)} />
+          <FinanceInputRow label="Current MRR (your recurring monthly revenue now)" value={inputs.currentMRR} min={0.1} max={500} step={0.5} prefix="₹" unit="L/mo" description="Total MRR today" onChange={(v) => patchInput("currentMRR", v)} />
+          <FinanceInputRow label="New Logo MRR (revenue from new customers)" value={inputs.newMRR} min={0} max={200} step={0.5} prefix="₹" unit="L/mo" description="MRR from brand-new customers this month" onChange={(v) => patchInput("newMRR", v)} />
+          <FinanceInputRow label="Churned MRR (revenue lost from cancellations)" value={inputs.churnedMRR} min={0} max={100} step={0.1} prefix="₹" unit="L/mo" description="MRR lost from cancellations" onChange={(v) => patchInput("churnedMRR", v)} />
+          <FinanceInputRow label="Expansion MRR (upsell from existing customers)" value={inputs.expansionMRR} min={0} max={100} step={0.1} prefix="₹" unit="L/mo" description="Upsell + seat expansion from existing customers" onChange={(v) => patchInput("expansionMRR", v)} />
         </>
       }
       outputs={

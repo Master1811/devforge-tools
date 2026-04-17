@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+import { motion, useMotionValue, useTransform, animate, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { usePrevious } from "@/hooks/usePrevious";
 
 const ACCENT_COLORS = {
   green: "text-emerald-400",
@@ -13,15 +16,52 @@ const ACCENT_COLORS = {
 interface FinanceMetricCardProps {
   label: string;
   value: string;
+  rawValue?: number;
   sub?: string;
   icon: React.ElementType;
   accent?: keyof typeof ACCENT_COLORS;
   className?: string;
 }
 
+function AnimatedNumber({ rawValue, displayValue, className }: {
+  rawValue: number;
+  displayValue: string;
+  className?: string;
+}) {
+  const reducedMotion = useReducedMotion();
+  const prev = usePrevious(rawValue) ?? rawValue;
+  const mv = useMotionValue(prev);
+
+  // Derive the integer prefix length from displayValue to preserve prefix/suffix
+  const prefix = displayValue.match(/^[^0-9\-]*/)?.[0] ?? "";
+  const suffix = displayValue.match(/[^0-9\.]+$/)?.[0] ?? "";
+  const numStr = displayValue.slice(prefix.length, suffix ? -suffix.length : undefined);
+  const decimals = numStr.includes(".") ? numStr.split(".")[1].length : 0;
+
+  const formatted = useTransform(mv, (latest) => {
+    const rounded = parseFloat(latest.toFixed(decimals));
+    return `${prefix}${rounded.toFixed(decimals)}${suffix}`;
+  });
+
+  useEffect(() => {
+    if (reducedMotion || rawValue === prev) {
+      mv.set(rawValue);
+      return;
+    }
+    const controls = animate(mv, rawValue, {
+      duration: 0.18,
+      ease: [0.22, 1, 0.36, 1],
+    });
+    return controls.stop;
+  }, [rawValue]);
+
+  return <motion.span className={className}>{formatted}</motion.span>;
+}
+
 export default function FinanceMetricCard({
   label,
   value,
+  rawValue,
   sub,
   icon: Icon,
   accent = "default",
@@ -42,7 +82,13 @@ export default function FinanceMetricCard({
           {label}
         </span>
       </div>
-      <div className={cn("text-2xl font-bold tabular-nums leading-none", color)}>{value}</div>
+      <div className={cn("text-2xl font-bold tabular-nums leading-none", color)}>
+        {rawValue !== undefined ? (
+          <AnimatedNumber rawValue={rawValue} displayValue={value} className={cn("text-2xl font-bold tabular-nums leading-none", color)} />
+        ) : (
+          value
+        )}
+      </div>
       {sub && (
         <div className="text-[11px] text-muted-foreground/60 mt-1.5 leading-snug">{sub}</div>
       )}

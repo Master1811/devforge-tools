@@ -16,6 +16,10 @@ import {
   TrendingUp,
   BarChart3,
   Calculator,
+  Sliders,
+  Globe2,
+  PieChart,
+  Palette,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -186,5 +190,42 @@ export const TOOLS: ToolEntry[] = [
     tag: "finance",
     tags: ["finance", "startup", "burn", "cash", "expenses"],
     keywords: ["burn rate calculator", "startup burn rate", "burn multiple", "net burn", "gross burn", "startup expenses", "capital efficiency"],
+  },
+  // ── Interactive Tools ───────────────────────────────────────────────────────
+  {
+    name: "Cap Table Simulator",
+    description: "Simulate equity dilution across funding rounds. Drag sliders to see how ESOP pools, SAFEs, and Series A terms reshape founder ownership.",
+    path: "/tools/interactive/cap-table",
+    icon: PieChart,
+    tag: "interactive",
+    tags: ["interactive", "finance", "startup", "equity", "dilution"],
+    keywords: ["cap table", "equity simulator", "dilution", "esop", "safe note", "series a", "founder ownership", "shares"],
+  },
+  {
+    name: "Glassmorphism Playground",
+    description: "Design glassmorphism UI components in real time. Tune blur, opacity, borders, and gradients with live CSS export.",
+    path: "/tools/interactive/glassmorphism",
+    icon: Palette,
+    tag: "interactive",
+    tags: ["interactive", "design", "css", "ui"],
+    keywords: ["glassmorphism", "css", "blur", "opacity", "gradient", "ui design", "frosted glass", "backdrop filter"],
+  },
+  {
+    name: "Open Graph Preview",
+    description: "Preview how your URLs appear on Twitter, LinkedIn, and Slack. Edit OG tags and see live card renders across all platforms.",
+    path: "/tools/interactive/og-preview",
+    icon: Globe2,
+    tag: "interactive",
+    tags: ["interactive", "seo", "og", "social", "preview"],
+    keywords: ["open graph", "og preview", "twitter card", "social preview", "meta tags", "seo", "linkedin preview"],
+  },
+  {
+    name: "Growth Scenario Simulator",
+    description: "Drag sliders to model MoM growth, churn, and expansion revenue. Watch your ARR trajectory update in real time across 3 scenarios.",
+    path: "/tools/interactive/growth-simulator",
+    icon: Sliders,
+    tag: "interactive",
+    tags: ["interactive", "finance", "startup", "growth", "saas"],
+    keywords: ["growth simulator", "arr model", "churn simulation", "saas scenarios", "revenue forecast", "mom growth"],
   },
 ];
