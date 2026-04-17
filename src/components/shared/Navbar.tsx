@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Search, Terminal, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, useSpring, useReducedMotion } from "framer-motion";
@@ -201,10 +200,6 @@ export default function Navbar() {
                 ⌘K
               </kbd>
             </motion.button>
-          </MagneticEl>
-
-          <MagneticEl>
-            <ThemeToggle />
           </MagneticEl>
         </div>
       </div>
